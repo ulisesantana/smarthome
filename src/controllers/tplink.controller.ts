@@ -10,7 +10,7 @@ export interface MappedDevice {
 }
 
 export class TplinkController {
-  devices = new Map()
+  #devices = new Map()
 
   async init (timeout = 1000): Promise<void> {
     const start = Date.now()
@@ -38,7 +38,7 @@ export class TplinkController {
   async toggleDeviceByAlias (alias: string): Promise<MappedDevice[]> {
     const device = this.#devices.get(alias)
     await device.togglePowerState()
-    return this.devices
+    return await this.devices
   }
 
   async toggleDeviceById (deviceId: string): Promise<MappedDevice[]> {
