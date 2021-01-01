@@ -25,7 +25,7 @@ class App extends LitElement {
     return async (...args) => {
       // eslint-disable-next-line standard/no-callback-literal
       this.devices = await cb(...args)
-      console.debug('Devices updated.')
+      console.debug('Devices updated.', this.devices)
     }
   }
 

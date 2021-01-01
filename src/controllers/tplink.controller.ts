@@ -12,7 +12,7 @@ export interface MappedDevice {
 export class TplinkController {
   #devices = new Map()
 
-  async init (timeout = 1000): Promise<void> {
+  async init (timeout = 10000): Promise<void> {
     const start = Date.now()
     const client = new Client()
     const devices = new Map()
