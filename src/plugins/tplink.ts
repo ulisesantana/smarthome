@@ -1,14 +1,14 @@
-import { TplinkController } from '../controllers/tplink.controller'
+import { TplinkService } from '../services'
 import fp from 'fastify-plugin'
 
 declare module 'fastify' {
   interface FastifyInstance {
-    tplink: TplinkController
+    tplink: TplinkService
   }
 }
 
 export default fp(async (server) => {
-  const tplink = new TplinkController()
+  const tplink = new TplinkService()
   await tplink.init()
   server.decorate('tplink', tplink)
 }, '3.x')

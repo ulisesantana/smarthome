@@ -1,61 +1,94 @@
 import { FastifyInstance } from 'fastify'
-import { OfficeController } from '../../controllers/office.controller'
-import { BedroomController } from '../../controllers/bedroom.controller'
-import { MappedDevice } from '../../controllers/tplink.controller'
+import { OfficeController, BedroomController, TerraceController } from '../../controllers'
 import { getLightStatus, toggleLightById, toggleLight } from './schema'
+import { Device } from '../../domain'
 
 async function lightsAPI (server: FastifyInstance): Promise<void> {
-  const officeController = new OfficeController(server.tplink)
+  const terraceController = new TerraceController(server.lifx)
+  const officeController = new OfficeController(server.tplink, server.lifx)
   const bedroomController = new BedroomController(server.tplink)
 
   server.get('/', { schema: getLightStatus },
     async function () {
-      return await server.tplink.devices
+      return await handleControllersResponse([
+        server.tplink.getDevices(),
+        server.lifx.getDevices()
+      ])
     }
   )
 
-  server.patch('/toggle/:id', { schema: toggleLightById },
+  server.patch<{ Params: { id: string } }>('/toggle/:id', { schema: toggleLightById },
     async function ({ params }) {
-      // @ts-expect-error
-      return await server.tplink.toggleDeviceById(params.id)
+      return await handleControllersResponse([
+        server.tplink.toggleDeviceById(params.id),
+        server.lifx.toggleDeviceById(params.id)
+      ])
     }
   )
 
   server.patch('/toggle/office', { schema: toggleLight },
-    async function (): Promise<MappedDevice[]> {
-      return await officeController.togglePlug()
+    async function (): Promise<Device[]> {
+      return await officeController.toggleOffice()
     }
   )
 
   server.patch('/toggle/bedroom', { schema: toggleLight },
     async function () {
-      return await bedroomController.toggleBedroom()
+      return await handleControllersResponse([
+        bedroomController.toggleBedroom(),
+        server.lifx.getDevices()
+      ])
     }
   )
 
-  server.patch('/toggle/bedroom/scene/day', { schema: toggleLight },
+  server.patch('/toggle/scene/day', { schema: toggleLight },
     async function () {
-      return await bedroomController.toggleDayScene()
+      return await handleControllersResponse([
+        bedroomController.toggleDayScene(),
+        officeController.toggleDayScene()
+      ])
     }
   )
 
-  server.patch('/toggle/bedroom/scene/night', { schema: toggleLight },
+  server.patch('/toggle/scene/night', { schema: toggleLight },
     async function () {
-      return await bedroomController.toggleNightScene()
+      return await handleControllersResponse([
+        bedroomController.toggleNightScene(),
+        terraceController.toggleTerrace(),
+        officeController.toggleNightScene()
+      ])
     }
   )
 
-  server.patch('/toggle/bedroom/scene/movie', { schema: toggleLight },
+  server.patch('/toggle/scene/movie', { schema: toggleLight },
     async function () {
-      return await bedroomController.toggleMovieScene()
+      return await handleControllersResponse([
+        bedroomController.toggleMovieScene(),
+        officeController.toggleMovieScene()
+      ])
     }
   )
 
-  server.patch('/toggle/bedroom/scene/relax', { schema: toggleLight },
+  server.patch('/toggle/scene/relax', { schema: toggleLight },
     async function () {
-      return await bedroomController.toggleRelaxScene()
+      return await handleControllersResponse([
+        bedroomController.toggleRelaxScene(),
+        officeController.toggleRelaxScene()
+      ])
     }
   )
+}
+
+async function handleControllersResponse (controllersActions: Array<Promise<Device[]>>): Promise<Device[]> {
+  return (await Promise.all(controllersActions)).flat().sort(sortDevices)
+}
+
+function sortDevices (deviceA: Device, deviceB: Device): number {
+  return deviceA.name > deviceB.name
+    ? 1
+    : deviceA.name < deviceB.name
+      ? -1
+      : 0
 }
 
 export default lightsAPI

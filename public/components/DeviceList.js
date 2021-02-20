@@ -16,7 +16,6 @@ class DeviceList extends LitElement {
           display: flex;
           flex-wrap: wrap;
           list-style: none;
-          justify-content: space-between;
           padding: 0;
           margin-top: -16px;
         }

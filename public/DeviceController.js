@@ -12,25 +12,25 @@ function toggleBedroom () {
 }
 
 function toggleDayScene () {
-  return fetch(apiPrefix + '/toggle/bedroom/scene/day', {
+  return fetch(apiPrefix + '/toggle/scene/day', {
     method: 'PATCH'
   }).then(response => response.json())
 }
 
 function toggleNightScene () {
-  return fetch(apiPrefix + '/toggle/bedroom/scene/night', {
+  return fetch(apiPrefix + '/toggle/scene/night', {
     method: 'PATCH'
   }).then(response => response.json())
 }
 
 function toggleMovieScene () {
-  return fetch(apiPrefix + '/toggle/bedroom/scene/movie', {
+  return fetch(apiPrefix + '/toggle/scene/movie', {
     method: 'PATCH'
   }).then(response => response.json())
 }
 
 function toggleRelaxScene () {
-  return fetch(apiPrefix + '/toggle/bedroom/scene/relax', {
+  return fetch(apiPrefix + '/toggle/scene/relax', {
     method: 'PATCH'
   }).then(response => response.json())
 }

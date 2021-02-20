@@ -1,83 +1,83 @@
-import { MappedDevice, TplinkController } from './tplink.controller'
-import { Bulb, LightState } from 'tplink-smarthome-api'
+import { Device, LightConfig } from '../domain'
+import { TplinkService } from '../services'
 
 export class BedroomController {
   private readonly warmLight = 2700
   private readonly whiteLight = 6500
   private lastSelectedDevices: string[] = []
-  private lastSelectedLightsConfig: Partial<LightState> = {}
+  private lastSelectedLightsConfig: LightConfig = {
+    colorTemp: this.warmLight,
+    brightness: 0
+  }
+
   private readonly deviceNames = [
     'Puerta Terraza',
     'Esquina Dormitorio',
     'Puerta Dormitorio'
   ]
 
-  constructor (private readonly tplinkController: TplinkController) {}
+  constructor (private readonly tplinkService: TplinkService) {}
 
-  getBedroomBulbs (): Bulb[] {
-    return this.deviceNames
-      .map(alias => this.tplinkController.getDevice(alias) as Bulb)
-      .filter(Boolean)
+  async getBedroomBulbs (): Promise<Device[]> {
+    return (await Promise.all(
+      this.deviceNames.map(async (alias) =>
+        await this.tplinkService.getDeviceByName(alias)
+      ))
+    ).filter(Boolean)
   }
 
-  async toggleBedroom (): Promise<MappedDevice[]> {
+  async toggleBedroom (): Promise<Device[]> {
     return await this.toggleScene({
       brightness: 100,
-      color_temp: this.warmLight
+      colorTemp: this.warmLight
     })
   }
 
-  async toggleMovieScene (): Promise<MappedDevice[]> {
+  async toggleMovieScene (): Promise<Device[]> {
     return await this.toggleScene({
       brightness: 10,
-      color_temp: this.warmLight
-    }, this.deviceNames.filter(alias => alias === 'Puerta Dormitorio'))
+      colorTemp: this.warmLight
+    }, ['Puerta Dormitorio'])
   }
 
-  async toggleRelaxScene (): Promise<MappedDevice[]> {
+  async toggleRelaxScene (): Promise<Device[]> {
     return await this.toggleScene({
       brightness: 10,
-      color_temp: this.warmLight
+      colorTemp: this.warmLight
     })
   }
 
-  async toggleNightScene (): Promise<MappedDevice[]> {
+  async toggleNightScene (): Promise<Device[]> {
     return await this.toggleScene({
       brightness: 50,
-      color_temp: this.warmLight
+      colorTemp: this.warmLight
     })
   }
 
-  async toggleDayScene (): Promise<MappedDevice[]> {
+  async toggleDayScene (): Promise<Device[]> {
     return await this.toggleScene({
       brightness: 100,
-      color_temp: this.whiteLight
+      colorTemp: this.whiteLight
     })
   }
 
   async isBedroomOn (): Promise<boolean> {
-    const bulbStates = await Promise.all(
-      this.getBedroomBulbs()
-        .map(async (bulb) => await bulb.lighting.getLightState())
-    )
-    return bulbStates.some(bulb => bulb.on_off)
+    const bulbs = await this.getBedroomBulbs()
+    return bulbs.some(bulb => bulb.power)
   }
 
-  private async toggleScene (lightsConfig: LightState, bulbNames = this.deviceNames): Promise<MappedDevice[]> {
-    const bulbs = this.getBedroomBulbs()
+  private async toggleScene (lightsConfig: LightConfig, bulbNames = this.deviceNames): Promise<Device[]> {
+    const bulbs = await this.getBedroomBulbs()
     const isBedroomOn = await this.isBedroomOn()
 
     if (isBedroomOn && this.areBulbsAlreadyOn(bulbNames) && this.isLightsConfigAlreadyInUse(lightsConfig)) {
-      await Promise.all(bulbs.map(async (bulb) => await bulb.setPowerState(false)))
+      await Promise.all(bulbs.map(async (bulb) => await this.tplinkService.setLightState({ ...bulb, power: false })))
     } else {
       await Promise.all(bulbs.map(async (bulb) => {
-        if (bulbNames.includes(bulb.alias)) {
-          await bulb.lighting.setLightState({
-            ...lightsConfig,
-            on_off: 1
-          })
+        if (bulbNames.includes(bulb.name)) {
+          await this.tplinkService.setLightState({ ...bulb, ...lightsConfig, power: true })
         } else {
-          await bulb.setPowerState(false)
+          await this.tplinkService.setLightState({ ...bulb, power: false })
         }
       }))
     }
@@ -85,10 +85,10 @@ export class BedroomController {
     this.lastSelectedDevices = bulbNames
     this.lastSelectedLightsConfig = lightsConfig
 
-    return await this.tplinkController.devices
+    return await this.tplinkService.getDevices()
   }
 
-  private isLightsConfigAlreadyInUse (lightsConfig: Partial<LightState>): boolean {
+  private isLightsConfigAlreadyInUse (lightsConfig: LightConfig): boolean {
     return JSON.stringify(lightsConfig) === JSON.stringify(this.lastSelectedLightsConfig)
   }
 

@@ -9,6 +9,7 @@ const isDevEnv = process.env.NODE_ENV === 'development'
 const PORT = process.env.PORT ?? 3000
 const docsRoute = process.env.DOCS_ROUTE ?? '/docs'
 const docsHost = `0.0.0.0:${PORT}`
+// TODO Inject Lifx token
 
 async function start (): Promise<void> {
   const server = isDevEnv

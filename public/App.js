@@ -47,13 +47,34 @@ class App extends LitElement {
           height: 100%;
           width: 100%;
         }
-        
+
         h1 {
           color: white;
         }
-        
+
         h1:first-child {
           margin-top: 0;
+        }
+
+        .devices-title {
+          align-items: center;
+          display: flex;
+        }
+        
+        .devices-title h1 {
+          display: block;
+          margin: 0 16px 0 0;
+        }
+
+        .devices-title button {
+          align-items: center;
+          background-color: white;
+          border: none;
+          border-radius: 16px;
+          cursor: pointer;
+          height: 26px;
+          padding: 0;
+          width: 26px;
         }
       `
     ]
@@ -61,9 +82,10 @@ class App extends LitElement {
 
   render () {
     return html`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <main class="App">
             <h1>Rooms</h1>
-            <device-shortcuts 
+            <device-shortcuts
                     style="width: calc(100%)"
                     .shortcuts=${this.rooms}
                     .generateUpdateDevicesHandler=${this.setDevicesHandler.bind(this)}
@@ -78,7 +100,12 @@ class App extends LitElement {
             ></device-shortcuts>
 
 
-            <h1>Devices</h1>
+            <div class="devices-title">
+                <h1>Devices</h1>
+                <button @click=${this.setDevicesHandler(DeviceController.getDevices)}>
+                    <i class="material-icons">cached</i>
+                </button>
+            </div>
             <device-list
                     style="width: calc(100%)"
                     .devices=${this.devices}
