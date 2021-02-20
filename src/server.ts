@@ -17,7 +17,7 @@ async function start (): Promise<void> {
 
   if (isDevEnv) {
     await server.register(import('fastify-swagger'), generateSwaggerConfig(docsHost, docsRoute))
-    console.log(`Check ${docsRoute ?? '/docs'} for SwaggerUI`)
+    console.log(`Check ${docsRoute} for SwaggerUI`)
   }
 
   await server.register(import('./app'))

@@ -8,8 +8,8 @@ export class BedroomController {
   private lastSelectedLightsConfig: Partial<LightState> = {}
   private readonly deviceNames = [
     'Puerta Terraza',
-    'Esquina Estudio',
-    'Puerta estudio'
+    'Esquina Dormitorio',
+    'Puerta Dormitorio'
   ]
 
   constructor (private readonly tplinkController: TplinkController) {}
@@ -29,9 +29,9 @@ export class BedroomController {
 
   async toggleMovieScene (): Promise<MappedDevice[]> {
     return await this.toggleScene({
-      brightness: 1,
+      brightness: 10,
       color_temp: this.warmLight
-    }, this.deviceNames.filter(alias => alias === 'Puerta estudio'))
+    }, this.deviceNames.filter(alias => alias === 'Puerta Dormitorio'))
   }
 
   async toggleRelaxScene (): Promise<MappedDevice[]> {
@@ -67,7 +67,7 @@ export class BedroomController {
     const bulbs = this.getBedroomBulbs()
     const isBedroomOn = await this.isBedroomOn()
 
-    if (isBedroomOn && this.areBulbsAlreadyOn(bulbNames) && this.areLightsConfigAlreadyInUse(lightsConfig)) {
+    if (isBedroomOn && this.areBulbsAlreadyOn(bulbNames) && this.isLightsConfigAlreadyInUse(lightsConfig)) {
       await Promise.all(bulbs.map(async (bulb) => await bulb.setPowerState(false)))
     } else {
       await Promise.all(bulbs.map(async (bulb) => {
@@ -88,7 +88,7 @@ export class BedroomController {
     return await this.tplinkController.devices
   }
 
-  private areLightsConfigAlreadyInUse (lightsConfig: Partial<LightState>): boolean {
+  private isLightsConfigAlreadyInUse (lightsConfig: Partial<LightState>): boolean {
     return JSON.stringify(lightsConfig) === JSON.stringify(this.lastSelectedLightsConfig)
   }
 
