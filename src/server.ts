@@ -1,4 +1,5 @@
 import fastify from 'fastify'
+import dotenv from 'dotenv'
 import {
   generateSwaggerConfig,
   fastifyDevelopmentOptions,
@@ -12,6 +13,7 @@ const docsHost = `0.0.0.0:${PORT}`
 // TODO Inject Lifx token
 
 async function start (): Promise<void> {
+  dotenv.config()
   const server = isDevEnv
     ? fastify(fastifyDevelopmentOptions)
     : fastify(fastifyProductionOptions)

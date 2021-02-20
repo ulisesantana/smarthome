@@ -6,7 +6,7 @@ export class LifxService implements DeviceService {
   readonly expirationTime = 1000 * 60
   readonly lastUpdateTime = Date.now()
 
-  constructor (private readonly lifxRepository = new LifxRepository(process.env.LIFX_TOKEN ?? 'secret')) {
+  constructor (private readonly lifxRepository = new LifxRepository(process.env.LIFX_TOKEN ?? '')) {
   }
 
   async init (): Promise<void> {

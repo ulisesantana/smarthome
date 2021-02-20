@@ -45,6 +45,10 @@ interface StateOptions {
 export class LifxRepository {
   private readonly url = 'https://api.lifx.com/v1/lights'
   constructor (private readonly token: string) {
+    if (token === '') {
+      console.error('Missing Lifx token. Exiting application.')
+      process.exit(1)
+    }
   }
 
   async getAllLights (): Promise<Device[]> {

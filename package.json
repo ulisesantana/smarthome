@@ -15,6 +15,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "fastify": "3.9.2",
     "fastify-autoload": "3.4.0",
     "fastify-cors": "5.2.0",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "14.14.16",
+    "@types/request": "^2.48.5",
     "@typescript-eslint/eslint-plugin": "4.11.1",
     "@typescript-eslint/parser": "4.11.1",
     "babel-eslint": "10.1.0",

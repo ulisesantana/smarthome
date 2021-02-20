@@ -59,3 +59,4 @@ profile*
 *flamegraph*
 
 package-lock.json
+.env
