@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "main": "build/server.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prestart": "npm run build",
     "start": "node build/server.js",
     "build": "npm run lint && tsc",
     "dev": "npm run build && NODE_ENV=development node build/server.js",
@@ -20,7 +20,6 @@
     "fastify-autoload": "3.4.0",
     "fastify-cors": "5.2.0",
     "fastify-plugin": "3.0.0",
-    "fastify-pug": "2.0.0",
     "fastify-static": "3.3.0",
     "fastify-swagger": "3.5.0",
     "fluent-json-schema": "2.0.3",
