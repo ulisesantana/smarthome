@@ -10,9 +10,10 @@ export interface Device {
 export type LightConfig = Pick<Device, 'brightness' | 'colorTemp'>
 
 export interface DeviceService {
-  getDevices: () => Promise<Device[]>
-  getDeviceByName: (alias: string) => Promise<Device>
-  toggleDeviceByName: (alias: string) => Promise<Device[]>
+  fetchDevices: () => Promise<Device[]>
+  getDevices: () => Device[]
+  getDeviceByName: (name: string) => Device
+  toggleDeviceByName: (name: string) => Promise<Device[]>
   toggleDeviceById: (deviceId: string) => Promise<Device[]>
   setLightState: (device: Device) => Promise<Device[]>
 }

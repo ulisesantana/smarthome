@@ -13,16 +13,19 @@ export class LifxService implements DeviceService {
     await this.updateDevices()
   }
 
-  async getDevices (): Promise<Device[]> {
-    await this.updateDevicesIfCacheIsExpired()
+  async fetchDevices (): Promise<Device[]> {
+    await this.updateDevices()
+    return this.getDevices()
+  }
+
+  getDevices (): Device[] {
     return [...this.devices.values()]
   }
 
-  async getDeviceByName (alias: string): Promise<Device> {
-    await this.updateDevicesIfCacheIsExpired()
-    const device = this.devices.get(alias)
+  getDeviceByName (name: string): Device {
+    const device = this.devices.get(name)
     if (device === undefined) {
-      throw new Error(`Device ${alias} not found in: ${[...this.devices.keys()].join()}`)
+      throw new Error(`Device ${name} not found in: ${[...this.devices.keys()].join()}`)
     }
     return device
   }
@@ -45,14 +48,14 @@ export class LifxService implements DeviceService {
       brightness: (device.brightness ?? cachedDevice.brightness) / 100
     })
     this.devices.set(device.name, device)
-    return await this.getDevices()
+    return this.getDevices()
   }
 
   private async toggleDevice (device: Device | undefined): Promise<Device[]> {
     if (device !== undefined) {
       return await this.setLightState({ ...device, power: !device.power })
     }
-    return await this.getDevices()
+    return this.getDevices()
   }
 
   private async updateDevices (): Promise<void> {
@@ -61,21 +64,7 @@ export class LifxService implements DeviceService {
 
     for (const light of lights) {
       this.devices.set(light.name, light)
-      if (firstUpdate) {
-        console.debug(`Found light ${light.name}`)
-      } else {
-        console.debug(`Updated light ${light.name}`)
-      }
-    }
-  }
-
-  isCacheExpired (): boolean {
-    return (this.lastUpdateTime + this.expirationTime) < Date.now()
-  }
-
-  async updateDevicesIfCacheIsExpired (): Promise<void> {
-    if (this.isCacheExpired()) {
-      await this.updateDevices()
+      console.debug(`${firstUpdate ? 'Found' : 'Updated'} light ${light.name}`)
     }
   }
 }

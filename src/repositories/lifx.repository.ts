@@ -63,7 +63,7 @@ export class LifxRepository {
 
   async setState (selector: string, options: StateOptions): Promise<void> {
     const body: StateOptions = {
-      fast: false
+      fast: true
     }
     if (options.power !== undefined) {
       body.power = options.power

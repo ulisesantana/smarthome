@@ -2,7 +2,7 @@ import { Bulb, Client, Device as TpLinkDevice, Plug } from 'tplink-smarthome-api
 import { Device } from '../domain'
 
 export class TplinkRepository {
-  private readonly discoveryTimeout = 5000
+  private readonly discoveryTimeout = 2000
   private readonly devices = new Map<string, TpLinkDevice>()
   private readonly client = new Client()
 

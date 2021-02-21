@@ -14,11 +14,16 @@ export class TplinkService implements DeviceService {
     }
   }
 
-  async getDevices (): Promise<Device[]> {
+  async fetchDevices (): Promise<Device[]> {
+    await this.init()
+    return this.getDevices()
+  }
+
+  getDevices (): Device[] {
     return [...this.devices.values()]
   }
 
-  async getDeviceByName (alias: string): Promise<Device> {
+  getDeviceByName (alias: string): Device {
     const device = this.devices.get(alias)
     if (device === undefined) {
       throw new Error(`Device ${alias} not found in: ${[...this.devices.keys()].join()}`)
@@ -39,13 +44,13 @@ export class TplinkService implements DeviceService {
   async setLightState (device: Device): Promise<Device[]> {
     const updatedDevice = await this.tplinkRepository.setState(device)
     this.devices.set(updatedDevice.name, updatedDevice)
-    return await this.getDevices()
+    return this.getDevices()
   }
 
   private async toggleDevice (device: Device | undefined): Promise<Device[]> {
     if (device !== undefined) {
       return await this.setLightState({ ...device, power: !device.power })
     }
-    return await this.getDevices()
+    return this.getDevices()
   }
 }

@@ -6,7 +6,12 @@ export class TerraceController {
 
   constructor (private readonly lifxService: LifxService) {}
 
+  getLights (): Device[] {
+    return [this.lifxService.getDeviceByName(this.bulb)]
+  }
+
   async toggleTerrace (): Promise<Device[]> {
-    return await this.lifxService.toggleDeviceByName(this.bulb)
+    await this.lifxService.toggleDeviceByName(this.bulb)
+    return this.getLights()
   }
 }
