@@ -4,21 +4,20 @@ import {
   generateSwaggerConfig,
   fastifyDevelopmentOptions,
   fastifyProductionOptions
-} from './config'
-
-const isDevEnv = process.env.NODE_ENV === 'development'
-const PORT = process.env.PORT ?? 3000
-const docsRoute = process.env.DOCS_ROUTE ?? '/docs'
-const docsHost = `0.0.0.0:${PORT}`
-// TODO Inject Lifx token
+} from './infrastructure/config'
 
 async function start (): Promise<void> {
-  dotenv.config()
+  const isDevEnv = process.env.NODE_ENV === 'development'
+  const PORT = process.env.PORT ?? 3000
+  const docsRoute = process.env.DOCS_ROUTE ?? '/docs'
+  const docsHost = `0.0.0.0:${PORT}`
+
   const server = isDevEnv
     ? fastify(fastifyDevelopmentOptions)
     : fastify(fastifyProductionOptions)
 
   if (isDevEnv) {
+    dotenv.config()
     await server.register(import('fastify-swagger'), generateSwaggerConfig(docsHost, docsRoute))
     console.log(`Check ${docsRoute} for SwaggerUI`)
   }

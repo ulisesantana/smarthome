@@ -1,11 +1,14 @@
-import { Device } from '../domain'
-import { TplinkService, BedroomService } from '../services'
+import { Device, RoomService, DeviceService } from '../index'
 
-export class BedroomController {
-  private readonly service: BedroomService
+export class BedroomUseCases {
+  private readonly service: RoomService
 
-  constructor (tplinkService: TplinkService) {
-    this.service = new BedroomService(tplinkService)
+  constructor (deviceService: DeviceService) {
+    this.service = new RoomService(deviceService, [
+      DeviceService.tplinkDevices.terraceDoor,
+      DeviceService.tplinkDevices.bedroomCorner,
+      DeviceService.tplinkDevices.bedroomDoor
+    ])
   }
 
   getLights (): Device[] {
@@ -15,35 +18,35 @@ export class BedroomController {
   async toggleBedroom (): Promise<Device[]> {
     return await this.service.toggleScene({
       brightness: 100,
-      colorTemp: this.service.warmLight
+      colorTemp: DeviceService.warmLight
     })
   }
 
   async toggleMovieScene (): Promise<Device[]> {
     return await this.service.toggleScene({
       brightness: 10,
-      colorTemp: this.service.warmLight
+      colorTemp: DeviceService.warmLight
     }, ['Puerta Dormitorio'])
   }
 
   async toggleRelaxScene (): Promise<Device[]> {
     return await this.service.toggleScene({
       brightness: 10,
-      colorTemp: this.service.warmLight
+      colorTemp: DeviceService.warmLight
     })
   }
 
   async toggleNightScene (): Promise<Device[]> {
     return await this.service.toggleScene({
       brightness: 50,
-      colorTemp: this.service.warmLight
+      colorTemp: DeviceService.warmLight
     })
   }
 
   async toggleDayScene (): Promise<Device[]> {
     return await this.service.toggleScene({
       brightness: 100,
-      colorTemp: this.service.whiteLight
+      colorTemp: DeviceService.whiteLight
     })
   }
 }

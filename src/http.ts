@@ -1,6 +1,6 @@
 import request, { CoreOptions, Response } from 'request'
 
-function generateRequest (method: string) {
+function generateRequestHandler (method: string) {
   // eslint-disable-next-line
   return (url: string, options?: CoreOptions): Promise<Response> => new Promise((resolve, reject) => {
     request(
@@ -21,11 +21,11 @@ function generateRequest (method: string) {
 }
 
 export const http = {
-  get: generateRequest('GET'),
-  post: generateRequest('POST'),
-  patch: generateRequest('PATCH'),
-  put: generateRequest('PUT'),
-  delete: generateRequest('DELETE')
+  get: generateRequestHandler('GET'),
+  post: generateRequestHandler('POST'),
+  patch: generateRequestHandler('PATCH'),
+  put: generateRequestHandler('PUT'),
+  delete: generateRequestHandler('DELETE')
 }
 
 export default http

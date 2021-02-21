@@ -1,5 +1,5 @@
 import { Bulb, Client, Device as TpLinkDevice, Plug } from 'tplink-smarthome-api'
-import { Device } from '../domain'
+import { Device, DeviceType, Provider } from '../../../domain'
 
 export class TplinkRepository {
   private readonly discoveryTimeout = 2000
@@ -49,19 +49,21 @@ export class TplinkRepository {
       return ({
         id: device.id,
         name: device.alias,
-        type: 'bulb',
+        type: DeviceType.Bulb,
         brightness: lightState.brightness ?? 0,
         colorTemp: lightState.color_temp ?? 0,
-        power: Boolean(lightState.on_off)
+        power: Boolean(lightState.on_off),
+        provider: Provider.TpLink
       })
     } else {
       return ({
         id: device.id,
         name: device.alias,
-        type: 'plug',
+        type: DeviceType.Plug,
         brightness: 0,
         colorTemp: 0,
-        power: await (device as Plug).getPowerState()
+        power: await (device as Plug).getPowerState(),
+        provider: Provider.TpLink
       })
     }
   }

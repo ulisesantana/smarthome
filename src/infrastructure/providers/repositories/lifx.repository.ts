@@ -1,5 +1,5 @@
-import { Device } from '../domain'
-import { http } from '../http'
+import { Device, DeviceType, Provider } from '../../../domain'
+import { http } from '../../../http'
 
 export interface LifxLight {
   id: string
@@ -100,10 +100,11 @@ export class LifxRepository {
     return ({
       id: device.id,
       name: device.label.trim(),
-      type: 'bulb',
+      type: DeviceType.Bulb,
       brightness: device.brightness * 100,
       colorTemp: device.color.kelvin,
-      power: device.power === 'on'
+      power: device.power === 'on',
+      provider: Provider.Lifx
     })
   }
 }

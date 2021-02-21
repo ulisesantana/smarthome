@@ -1,7 +1,7 @@
-import { Device, DeviceService } from '../domain'
+import { Device, ProviderService } from '../../../domain'
 import { TplinkRepository } from '../repositories'
 
-export class TplinkService implements DeviceService {
+export class TplinkService implements ProviderService {
   private readonly devices = new Map<string, Device>()
 
   constructor (private readonly tplinkRepository = new TplinkRepository()) {

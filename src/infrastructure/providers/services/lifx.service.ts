@@ -1,12 +1,12 @@
 import { LifxRepository } from '../repositories'
-import { Device, DeviceService } from '../domain'
+import { Device, ProviderService } from '../../../domain'
 
-export class LifxService implements DeviceService {
+export class LifxService implements ProviderService {
   readonly devices = new Map<string, Device>()
   readonly expirationTime = 1000 * 60
   readonly lastUpdateTime = Date.now()
 
-  constructor (private readonly lifxRepository = new LifxRepository(process.env.LIFX_TOKEN ?? '')) {
+  constructor (private readonly lifxRepository: LifxRepository) {
   }
 
   async init (): Promise<void> {
@@ -26,8 +26,9 @@ export class LifxService implements DeviceService {
     const device = this.devices.get(name)
     if (device === undefined) {
       throw new Error(`Device ${name} not found in: ${[...this.devices.keys()].join()}`)
+    } else {
+      return device
     }
-    return device
   }
 
   async toggleDeviceByName (alias: string): Promise<Device[]> {

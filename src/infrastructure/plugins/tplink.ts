@@ -1,4 +1,4 @@
-import { TplinkService } from '../services'
+import { TplinkService } from '../providers'
 import fp from 'fastify-plugin'
 
 declare module 'fastify' {
