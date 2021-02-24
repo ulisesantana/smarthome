@@ -20,7 +20,7 @@ export class OfficeUseCases {
     return await this.service.toggleScene({
       brightness: 100,
       colorTemp: DeviceService.warmLight
-    }, this.service.deviceList.filter(name => name !== DeviceService.lifxDevices.rightLamp))
+    })
   }
 
   async toggleMovieScene (): Promise<Device[]> {
