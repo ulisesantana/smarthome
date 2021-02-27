@@ -11,4 +11,4 @@ function update() {
   docker run -d --name smarthome -e PORT=3010 -e LIFX_TOKEN=$LIFX_TOKEN --network host --restart=unless-stopped smarthome-api:$VERSION
 }
 
-update > update-output.txt
+update &> update-output.txt
