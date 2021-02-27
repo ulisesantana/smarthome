@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function update() {
-  whoami
+  export $(egrep -v '^#' .env | xargs)
   pwd
   date
   git pull
