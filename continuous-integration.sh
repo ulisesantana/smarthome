@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function update() {
+  pwd
   date
   git pull
 
