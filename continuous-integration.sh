@@ -6,12 +6,14 @@ function update() {
   date
   git pull
 
-  VERSION=$(/home/ulises/.nvm/versions/node/v14.15.3/bin/node -pe "require('./package.json').name.concat(':').concat(require('./package.json').version)")
-  echo $VERSION
+  PACKAGE_NAME=$(grep -m1 name package.json | awk -F: '{ print $2 }' | sed 's/[", ]//g')
+  VERSION=$(grep -m1 version package.json | awk -F: '{ print $2 }' | sed 's/[", ]//g')
+  DOCKER_IMAGE=$($PACKAGE_NAME):$($VERSION)
+  echo $DOCKER_IMAGE
 
-  /home/ulises/.nvm/versions/node/v14.15.3/bin/npm run docker:generate
+  docker build -t $DOCKER_IMAGE .
   docker rm -f smarthome
-  docker run -d --name smarthome -e PORT=3010 -e LIFX_TOKEN=$LIFX_TOKEN --network host --restart=unless-stopped $VERSION
+  docker run -d --name smarthome -e PORT=3010 -e LIFX_TOKEN=$LIFX_TOKEN --network host --restart=unless-stopped $DOCKER_IMAGE
 }
 
 update &>update-output.txt
