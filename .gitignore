@@ -60,3 +60,4 @@ profile*
 
 package-lock.json
 .env
+update-output.txt
