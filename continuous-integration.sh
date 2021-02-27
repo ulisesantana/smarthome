@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function update() {
+  date
   git pull
 
   VERSION=$(node -pe "require('./package.json').name.concat(':').concat(require('./package.json').version)")
