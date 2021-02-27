@@ -1,6 +1,6 @@
 {
   "name": "smarthome-api",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "main": "build/server.js",
   "scripts": {
     "prestart": "npm run build",
@@ -10,7 +10,8 @@
     "dev:watch": "npm run build -- --watch & NODE_ENV=development nodemon build/server.js",
     "docker:generate": "docker build -t $(node -pe \"require('./package.json').name.concat(':').concat(require('./package.json').version)\") .",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "tag": "TAG=v$(node -pe \"require('./package.json').version\"); git commit -am \"🔖 $TAG\" && git tag $TAG && git push && git push --tags"
   },
   "author": "Ulises Santana <ulisesantana@gmail.com>",
   "license": "MIT",
