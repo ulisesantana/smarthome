@@ -1,6 +1,6 @@
 {
   "name": "smarthome-api",
-  "version": "2.2.9",
+  "version": "2.2.10",
   "main": "build/server.js",
   "scripts": {
     "prestart": "npm run build",
