@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function update() {
+  whoami
   pwd
   date
   git pull
