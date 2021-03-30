@@ -11,7 +11,10 @@
     "docker:generate": "docker build -t $(node -pe \"require('./package.json').name.concat(':').concat(require('./package.json').version)\") .",
     "lint": "eslint ./server --ext .ts",
     "lint:fix": "npm run lint -- --fix",
-    "tag": "TAG=v$(node -pe \"require('./package.json').version\"); git commit -am \"🔖 $TAG\" && git tag $TAG && git push && git push --tags"
+    "tag": "TAG=v$(node -pe \"require('./package.json').version\"); git commit -am \"🔖 $TAG\" && git tag $TAG && git push && git push --tags",
+    "test": "jest",
+    "test:coverage": "npm t -- --coverage",
+    "test:create-db": "bash db/mongo/create-db.sh"
   },
   "author": "Ulises Santana <ulisesantana@gmail.com>",
   "license": "MIT",
@@ -28,6 +31,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/jest": "26.0.22",
+    "@types/mongodb": "3.6.10",
     "@types/node": "14.14.16",
     "@types/request": "2.48.5",
     "@types/uuid": "8.3.0",
@@ -42,6 +47,7 @@
     "nodemon": "2.0.6",
     "pino-pretty": "4.3.0",
     "ts-essentials": "7.0.1",
+    "ts-jest": "26.5.4",
     "typescript": "3.9.7"
   },
   "keywords": [],
