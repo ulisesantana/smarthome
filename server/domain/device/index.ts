@@ -1,3 +1,4 @@
+export * from './device.controller'
 export * from './device.error'
 export * from './device.model'
 export * from './device.repository'

@@ -26,17 +26,15 @@ export class DeviceService {
     return this.repository.findAll()
   }
 
-  async setLightStateById (id: string, config: Partial<Device>): Promise<Device[]> {
+  async setLightStateById (id: string, config: Partial<Device>): Promise<void> {
     const device = await this.repository.findById(id)
     const updatedDevice = { ...device, ...config }
     await this.setLightStateBasedOnProvider(updatedDevice)
-    return this.getDevices()
   }
 
-  async toggleDeviceById (id: string): Promise<Device[]> {
+  async toggleDeviceById (id: string): Promise<void> {
     const device = await this.repository.findById(id)
     await this.setLightStateBasedOnProvider({ ...device, power: !device.power })
-    return this.getDevices()
   }
 
   private async setLightStateBasedOnProvider (device: Device): Promise<void> {

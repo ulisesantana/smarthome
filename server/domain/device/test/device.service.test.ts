@@ -21,25 +21,6 @@ describe('Device service should', () => {
     expect(devices).toHaveLength(mockDevices.length)
   })
 
-  it('retrieve all devices after toggling one', async () => {
-    const mockDevices = Array.from({ length: 4 }).map(() => buildDevice())
-    const deviceRepository = buildDeviceRepository({
-      findById: async () => mockDevices[0],
-      findAll: async () => mockDevices
-    })
-
-    const deviceService = new DeviceService({
-      deviceRepository,
-      tplinkService: buildTplinkService(),
-      lifxService: buildLifxService()
-    })
-
-    const updatedDevices = await deviceService.toggleDeviceById(mockDevices[0].id)
-
-    expect(updatedDevices).toStrictEqual(mockDevices)
-    expect(deviceRepository.findAll).toHaveBeenCalled()
-  })
-
   it('toggle TP-Link device by id', async () => {
     const device = buildDevice({ id: 'irrelevantDevice', provider: Provider.TpLink, power: true })
     const { deviceRepository, lifxService, tplinkService } = prepareDeviceService(device)
