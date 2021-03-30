@@ -1,10 +1,10 @@
 {
   "name": "smarthome-api",
   "version": "2.3.1",
-  "main": "build/server.js",
+  "main": "build/infrastructure/server.js",
   "scripts": {
     "prestart": "npm run build",
-    "start": "node build/server.js",
+    "start": "node NODE_ENV=production build/infrastructure/server.js",
     "build": "npm run lint && tsc",
     "database:up": "mkdir -p db/mongo/database && docker-compose -f db/mongo/docker-compose.yml up -d",
     "database:down": "docker-compose -f db/mongo/docker-compose.yml down",
@@ -30,7 +30,7 @@
     "fluent-json-schema": "2.0.3",
     "mongodb": "3.6.5",
     "request": "2.88.2",
-    "uuid": "^8.3.2"
+    "uuid": "8.3.2"
   },
   "devDependencies": {
     "@types/jest": "26.0.22",

@@ -4,7 +4,7 @@ import {
   generateSwaggerConfig,
   fastifyDevelopmentOptions,
   fastifyProductionOptions
-} from './infrastructure/config'
+} from './config'
 
 async function start (): Promise<void> {
   const isDevEnv = process.env.NODE_ENV === 'development'

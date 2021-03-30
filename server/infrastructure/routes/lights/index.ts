@@ -1,128 +1,57 @@
 import { FastifyInstance } from 'fastify'
-import { getLightStatus, toggleLightById, toggleLight } from './schema'
+import { getLightStatus, toggleLightById, updateLightStatusById } from './schema'
 import {
   Device,
-  DeviceService,
-  OfficeUseCases,
-  BedroomUseCases,
-  TerraceUseCases
+  DeviceRepository,
+  DeviceService
 } from '../../../domain'
+import { LifxRepository, LifxService, TplinkRepository, TplinkService } from '../../providers'
 
 async function lightsAPI (server: FastifyInstance): Promise<void> {
-  const deviceService = new DeviceService(server.tplink, server.lifx)
-  const terraceUseCases = new TerraceUseCases(deviceService)
-  const officeUseCases = new OfficeUseCases(deviceService)
-  const bedroomUseCases = new BedroomUseCases(deviceService)
+  const deviceRepository = new DeviceRepository()
+  const [tplinkService, lifxService] = await Promise.all([
+    loadTplinkService(deviceRepository),
+    loadLifxService(deviceRepository)
+  ])
+
+  const deviceService = new DeviceService({
+    deviceRepository,
+    lifxService,
+    tplinkService
+  })
 
   server.get('/', { schema: getLightStatus },
     async function () {
-      return await handleUseCasesResponse([
-        deviceService.fetchDevices()
-      ])
+      return await deviceService.getDevices()
+    }
+  )
+
+  server.patch<{ Params: { id: string }, Body: Partial<Device> }>('/:id', { schema: updateLightStatusById },
+    async function ({ params, body }) {
+      return await deviceService.setLightStateById(params.id, body)
     }
   )
 
   server.patch<{ Params: { id: string } }>('/toggle/:id', { schema: toggleLightById },
     async function ({ params }) {
-      return await handleUseCasesResponse([
-        deviceService.toggleDeviceById(params.id)
-      ])
-    }
-  )
-
-  server.patch('/toggle/office', { schema: toggleLight },
-    async function (): Promise<Device[]> {
-      const officeLights = await handleUseCasesResponse([officeUseCases.toggleOffice()])
-      return [
-        officeLights,
-        bedroomUseCases.getLights(),
-        terraceUseCases.getLights()
-      ].flat().sort(sortDevicesByName)
-    }
-  )
-
-  server.patch('/toggle/bedroom', { schema: toggleLight },
-    async function () {
-      const bedroomLights = await handleUseCasesResponse([bedroomUseCases.toggleBedroom()])
-      return [
-        bedroomLights,
-        officeUseCases.getLights(),
-        terraceUseCases.getLights()
-      ].flat().sort(sortDevicesByName)
-    }
-  )
-
-  server.patch('/toggle/scene/day', { schema: toggleLight },
-    async function () {
-      const lights = await handleUseCasesResponse([
-        bedroomUseCases.toggleDayScene(),
-        officeUseCases.toggleDayScene()
-      ])
-      return [
-        lights,
-        terraceUseCases.getLights()
-      ].flat().sort(sortDevicesByName)
-    }
-  )
-
-  server.patch('/toggle/scene/night', { schema: toggleLight },
-    async function () {
-      return await handleUseCasesResponse([
-        bedroomUseCases.toggleNightScene(),
-        terraceUseCases.toggleTerrace(),
-        officeUseCases.toggleNightScene()
-      ])
-    }
-  )
-
-  server.patch('/toggle/scene/movie', { schema: toggleLight },
-    async function () {
-      const lights = await handleUseCasesResponse([
-        bedroomUseCases.toggleMovieScene(),
-        officeUseCases.toggleMovieScene()
-      ])
-      return [
-        lights,
-        terraceUseCases.getLights()
-      ].flat().sort(sortDevicesByName)
-    }
-  )
-
-  server.patch('/toggle/scene/relax', { schema: toggleLight },
-    async function () {
-      const lights = await handleUseCasesResponse([
-        bedroomUseCases.toggleRelaxScene(),
-        officeUseCases.toggleRelaxScene()
-      ])
-      return [
-        lights,
-        terraceUseCases.getLights()
-      ].flat().sort(sortDevicesByName)
+      return await deviceService.toggleDeviceById(params.id)
     }
   )
 }
 
-async function handleUseCasesResponse (controllersActions: Array<Promise<Device[]>>): Promise<Device[]> {
-  const allDevices = [] as Device[]
-  for await (const devices of triggerUseCasesAction(controllersActions)) {
-    allDevices.push(...devices)
-  }
-  return allDevices.sort(sortDevicesByName)
+async function loadLifxService (deviceRepository: DeviceRepository): Promise<LifxService> {
+  const lifxToken = process.env.LIFX_TOKEN ?? ''
+  const lifx = new LifxService(new LifxRepository(lifxToken), deviceRepository)
+  await lifx.init()
+  return lifx
 }
 
-async function * triggerUseCasesAction (controllersActions: Array<Promise<Device[]>>): AsyncGenerator<Device[]> {
-  for (const action of controllersActions) {
-    const devices = await action
-    yield devices
-  }
-}
-
-function sortDevicesByName (deviceA: Device, deviceB: Device): number {
-  return deviceA.name > deviceB.name
-    ? 1
-    : deviceA.name < deviceB.name
-      ? -1
-      : 0
+async function loadTplinkService (deviceRepository: DeviceRepository): Promise<TplinkService> {
+  const tplinkUser = process.env.TPLINK_USER ?? ''
+  const tplinkPassword = process.env.TPLINK_PASS ?? ''
+  const tplink = new TplinkService(new TplinkRepository(tplinkUser, tplinkPassword), deviceRepository)
+  await tplink.init()
+  return tplink
 }
 
 export default lightsAPI

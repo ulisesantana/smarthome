@@ -1,6 +1,5 @@
-import { v4 } from 'uuid'
-import { http } from '../../../http'
-import { Device, DeviceType, Provider } from '../../../domain'
+import { http, generateId, ProviderRepository, Provider } from '../../../common'
+import { Device, DeviceType } from '../../../domain'
 
 interface TpLinkDevice {
   deviceType: string
@@ -33,7 +32,7 @@ interface LightState {
  * Based on tplink-cloud-api npm package
  * https://www.npmjs.com/package/tplink-cloud-api
  */
-export class TplinkRepository {
+export class TplinkRepository implements ProviderRepository {
   private readonly url = 'https://wap.tplinkcloud.com'
   private readonly oneHourInMs = 1000 * 60 * 60
   private expirationTime = Date.now()
@@ -55,7 +54,7 @@ export class TplinkRepository {
 
   async getAllDevices (): Promise<Device[]> {
     await this.refreshTokenIfIsExpired()
-    const url = TplinkRepository.generateUrl(this.url, {
+    const url = TplinkRepository.generateUrlWithQueryString(this.url, {
       appName: 'Kasa_Android',
       termID: this.termID,
       appVer: '1.4.4.607',
@@ -77,7 +76,19 @@ export class TplinkRepository {
     return Promise.all([...this.deviceList.keys()].map(async (id) => await this.getDevice(id)))
   }
 
-  async getDevice (id: string): Promise<Device> {
+  async setState (device: Device): Promise<Device> {
+    const rawDevice = this.deviceList.get(device.id)
+    if (rawDevice !== undefined) {
+      if (TplinkRepository.isABulb(rawDevice)) {
+        await this.setBulbState(rawDevice, device)
+      } else {
+        await this.setPlugState(rawDevice, device.power)
+      }
+    }
+    return device
+  }
+
+  private async getDevice (id: string): Promise<Device> {
     const device = this.deviceList.get(id)
     if (device === undefined) {
       throw new Error(`TPLink device with id ${id} doesn't exist.`)
@@ -88,20 +99,6 @@ export class TplinkRepository {
         brightness: deviceInfo?.system?.get_sysinfo?.light_state?.dft_on_state?.brightness ?? 0,
         colorTemp: deviceInfo?.system?.get_sysinfo?.light_state?.dft_on_state?.color_temp ?? 0
       })
-    }
-  }
-
-  async setState (device: Device): Promise<Device> {
-    const rawDevice = this.deviceList.get(device.id)
-    if (rawDevice !== undefined) {
-      if (TplinkRepository.isABulb(rawDevice)) {
-        await this.setBulbState(rawDevice, device)
-      } else {
-        await this.setPlugState(rawDevice, device.power)
-      }
-      return await this.getDevice(device.id)
-    } else {
-      return device
     }
   }
 
@@ -126,8 +123,8 @@ export class TplinkRepository {
   }
 
   private async login (): Promise<void> {
-    const termID: string = v4()
-    const url = TplinkRepository.generateUrl(this.url, {
+    const termID: string = generateId()
+    const url = TplinkRepository.generateUrlWithQueryString(this.url, {
       appName: 'Kasa_Android',
       termID,
       appVer: '1.4.4.607',
@@ -157,7 +154,7 @@ export class TplinkRepository {
 
   private async passthroughRequest (device: TpLinkDevice, command: Record<string, any>): Promise<Record<string, any>> {
     await this.refreshTokenIfIsExpired()
-    const url = TplinkRepository.generateUrl(device.appServerUrl, {
+    const url = TplinkRepository.generateUrlWithQueryString(device.appServerUrl, {
       appName: 'Kasa_Android',
       termID: this.termID,
       appVer: '1.4.4.607',
@@ -196,6 +193,7 @@ export class TplinkRepository {
         brightness: deviceState.brightness ?? 0,
         colorTemp: deviceState.colorTemp ?? 0,
         power: Boolean(deviceState.power),
+        available: true,
         provider: Provider.TpLink
       })
     } else {
@@ -206,6 +204,7 @@ export class TplinkRepository {
         brightness: 0,
         colorTemp: 0,
         power: Boolean(deviceState.power),
+        available: true,
         provider: Provider.TpLink
       })
     }
@@ -215,7 +214,7 @@ export class TplinkRepository {
     return device.deviceName.includes('Bulb')
   }
 
-  private static generateUrl (url: string, queryParams: Record<string, string | number>): string {
+  private static generateUrlWithQueryString (url: string, queryParams: Record<string, string | number>): string {
     return url.concat(
       '?' + Object.entries(queryParams)
         .reduce<string[]>((result, [key, value]) => [...result, `${key}=${value}`], [])

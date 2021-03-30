@@ -1,4 +1,5 @@
 import S from 'fluent-json-schema'
+import { DeviceService } from '../../../domain'
 // 8006BCAF2C5869DDB91F9E0C0ADC196C1BA3B381
 
 const lightStatusExample = {
@@ -41,9 +42,15 @@ export const toggleLightById = {
   }
 }
 
-export const toggleLight = {
+export const updateLightStatusById = {
   tags: ['lights'],
-  summary: 'Toggle device by id',
+  summary: 'Update light status by id',
+  params: S.object().prop('id', S.string().required()),
+  body: S.object()
+    .prop('power', S.boolean())
+    .prop('colorTemp', S.number().minimum(DeviceService.warmLight).maximum(DeviceService.whiteLight))
+    .prop('brightness', S.number().minimum(0).maximum(100))
+    .examples([{ power: true, colorTemp: 3200, brightness: 50 }]),
   response: {
     200: lightStatusResponse
   }

@@ -1,5 +1,6 @@
-import { Device, DeviceType, Provider } from '../../../domain'
-import { http } from '../../../http'
+/* eslint-disable camelcase */
+import { Device, DeviceType } from '../../../domain'
+import { http, Provider, ProviderRepository } from '../../../common'
 
 export interface LifxLight {
   id: string
@@ -42,7 +43,7 @@ interface StateOptions {
   fast?: boolean
 }
 
-export class LifxRepository {
+export class LifxRepository implements ProviderRepository {
   private readonly url = 'https://api.lifx.com/v1/lights'
   constructor (private readonly token: string) {
     if (token === '') {
@@ -51,17 +52,18 @@ export class LifxRepository {
     }
   }
 
-  async getAllLights (): Promise<Device[]> {
+  async getAllDevices (): Promise<Device[]> {
     const response = await http.get(`${this.url}/all`, {
       auth: {
         bearer: this.token
       }
     })
     const lights = response.toJSON().body
-    return lights.map(LifxRepository.mapToDevice)
+    return lights.map(LifxRepository.mapToDomain)
   }
 
-  async setState (selector: string, options: StateOptions): Promise<void> {
+  async setState (device: Device): Promise<Device> {
+    const options = LifxRepository.mapToProvider(device)
     const body: StateOptions = {
       fast: true
     }
@@ -84,19 +86,28 @@ export class LifxRepository {
       body.fast = options.fast
     }
 
-    const response = await http.put(`${this.url}/${selector}/state`, {
+    const response = await http.put(`${this.url}/id:${device.id}/state`, {
       auth: {
         bearer: this.token
       },
       body
     })
 
-    console.debug(`Lifx set state for ${selector}`, response.toJSON().body)
+    console.debug(`Lifx set state for ${device.name}`, response.toJSON().body)
     console.debug(body)
-    console.debug(`Response ${selector}`, response.statusMessage)
+    console.debug(`Response ${device.name}`, response.statusMessage)
+    return device
   }
 
-  private static mapToDevice (device: LifxLight): Device {
+  private static mapToProvider (device: Device): StateOptions {
+    return {
+      power: device.power ? 'on' : 'off',
+      color: `kelvin:${device.colorTemp}`,
+      brightness: device.brightness / 100
+    }
+  }
+
+  private static mapToDomain (device: LifxLight): Device {
     return ({
       id: device.id,
       name: device.label.trim(),
@@ -104,6 +115,7 @@ export class LifxRepository {
       brightness: device.brightness * 100,
       colorTemp: device.color.kelvin,
       power: device.power === 'on',
+      available: true,
       provider: Provider.Lifx
     })
   }

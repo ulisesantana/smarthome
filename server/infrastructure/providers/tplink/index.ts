@@ -1,2 +1,2 @@
-export * from './lifx.repository'
 export * from './tplink.repository'
+export * from './tplink.service'
