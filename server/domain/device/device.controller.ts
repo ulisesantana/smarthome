@@ -13,6 +13,10 @@ export class DeviceController {
   constructor (private readonly service: DeviceService) {
   }
 
+  getDevices (): Promise<Device[]> {
+    return this.service.getDevices()
+  }
+
   async setLightStateById (id: string, config: Partial<Device>): Promise<Device[]> {
     await this.service.setLightStateById(id, config)
     return this.getDevices()
@@ -49,10 +53,6 @@ export class DeviceController {
       lifxService,
       tplinkService
     }))
-  }
-
-  getDevices (): Promise<Device[]> {
-    return this.service.getDevices()
   }
 
   private static async loadLifxService (dbDevices: Device[]): Promise<InitializedProviderService> {
