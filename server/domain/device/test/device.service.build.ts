@@ -48,7 +48,7 @@ export function buildLifxService (mockRepository: ProviderMockRepository = {}): 
 }
 
 function buildProviderService<T extends ProviderService> (
-  ServiceConstructor: Constructor<any>,
+  ServiceConstructor: Constructor<T>,
   repository: ProviderRepository,
   mockRepository: ProviderMockRepository = {}
 ): T {
