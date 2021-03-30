@@ -3,7 +3,7 @@ import { Device } from './device.model'
 import { DeviceRepository } from './device.repository'
 import { Provider } from '../../common'
 
-interface DeviceServiceConstructorParams {
+export interface DeviceServiceConstructorParams {
   deviceRepository: DeviceRepository
   tplinkService: TplinkService
   lifxService: LifxService
