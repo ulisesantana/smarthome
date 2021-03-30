@@ -76,7 +76,7 @@ export class TplinkRepository implements ProviderRepository {
     return Promise.all([...this.deviceList.keys()].map(async (id) => await this.getDevice(id)))
   }
 
-  async setState (device: Device): Promise<Device> {
+  async setState (device: Device): Promise<void> {
     const rawDevice = this.deviceList.get(device.id)
     if (rawDevice !== undefined) {
       if (TplinkRepository.isABulb(rawDevice)) {
@@ -85,7 +85,6 @@ export class TplinkRepository implements ProviderRepository {
         await this.setPlugState(rawDevice, device.power)
       }
     }
-    return device
   }
 
   private async getDevice (id: string): Promise<Device> {

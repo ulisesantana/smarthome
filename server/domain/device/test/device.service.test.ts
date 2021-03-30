@@ -11,8 +11,8 @@ describe('Device service should', () => {
     })
     const deviceService = new DeviceService({
       deviceRepository,
-      tplinkService: buildTplinkService(deviceRepository),
-      lifxService: buildLifxService(deviceRepository)
+      tplinkService: buildTplinkService(),
+      lifxService: buildLifxService()
     })
 
     const devices = await deviceService.getDevices()
@@ -26,12 +26,11 @@ describe('Device service should', () => {
       findById: async () => mockDevices[0],
       findAll: async () => mockDevices
     })
-    const tplinkService = buildTplinkService(deviceRepository)
-    const lifxService = buildLifxService(deviceRepository)
+
     const deviceService = new DeviceService({
       deviceRepository,
-      tplinkService,
-      lifxService
+      tplinkService: buildTplinkService(),
+      lifxService: buildLifxService()
     })
 
     const updatedDevices = await deviceService.toggleDeviceById(mockDevices[0].id)
@@ -41,14 +40,14 @@ describe('Device service should', () => {
   })
 
   it('toggle TP-Link device by id', async () => {
-    const device = buildDevice({ id: 'irrelevantDevice', provider: Provider.TpLink })
+    const device = buildDevice({ id: 'irrelevantDevice', provider: Provider.TpLink, power: true })
     const deviceRepository = buildDeviceRepository({
       findById: async () => device
     })
-    const tplinkService = buildTplinkService(deviceRepository)
-    const lifxService = buildLifxService(deviceRepository)
-    tplinkService.toggleDevice = jest.fn()
-    lifxService.toggleDevice = jest.fn()
+    const tplinkService = buildTplinkService()
+    const lifxService = buildLifxService()
+    tplinkService.setLightState = jest.fn()
+    lifxService.setLightState = jest.fn()
     const deviceService = new DeviceService({
       deviceRepository,
       tplinkService,
@@ -57,20 +56,20 @@ describe('Device service should', () => {
 
     await deviceService.toggleDeviceById(device.id)
 
-    expect(tplinkService.toggleDevice).toHaveBeenCalledWith(device)
-    expect(lifxService.toggleDevice).not.toHaveBeenCalled()
+    expect(tplinkService.setLightState).toHaveBeenCalledWith({ ...device, power: false })
+    expect(lifxService.setLightState).not.toHaveBeenCalled()
     expect(deviceRepository.findById).toHaveBeenCalled()
   })
 
   it('toggle Lifx device by id', async () => {
-    const device = buildDevice({ id: 'irrelevantDevice', provider: Provider.Lifx })
+    const device = buildDevice({ id: 'irrelevantDevice', provider: Provider.Lifx, power: true })
     const deviceRepository = buildDeviceRepository({
       findById: async () => device
     })
-    const tplinkService = buildTplinkService(deviceRepository)
-    const lifxService = buildLifxService(deviceRepository)
-    tplinkService.toggleDevice = jest.fn()
-    lifxService.toggleDevice = jest.fn()
+    const tplinkService = buildTplinkService()
+    const lifxService = buildLifxService()
+    tplinkService.setLightState = jest.fn()
+    lifxService.setLightState = jest.fn()
     const deviceService = new DeviceService({
       deviceRepository,
       tplinkService,
@@ -79,8 +78,8 @@ describe('Device service should', () => {
 
     await deviceService.toggleDeviceById(device.id)
 
-    expect(lifxService.toggleDevice).toHaveBeenCalledWith(device)
-    expect(tplinkService.toggleDevice).not.toHaveBeenCalled()
+    expect(lifxService.setLightState).toHaveBeenCalledWith({ ...device, power: false })
+    expect(tplinkService.setLightState).not.toHaveBeenCalled()
     expect(deviceRepository.findById).toHaveBeenCalled()
   })
 
@@ -91,8 +90,8 @@ describe('Device service should', () => {
     const deviceRepository = buildDeviceRepository({
       findById: async () => device
     })
-    const tplinkService = buildTplinkService(deviceRepository)
-    const lifxService = buildLifxService(deviceRepository)
+    const tplinkService = buildTplinkService()
+    const lifxService = buildLifxService()
     tplinkService.setLightState = jest.fn()
     lifxService.setLightState = jest.fn()
     const deviceService = new DeviceService({
@@ -114,8 +113,8 @@ describe('Device service should', () => {
     const deviceRepository = buildDeviceRepository({
       findById: async () => device
     })
-    const tplinkService = buildTplinkService(deviceRepository)
-    const lifxService = buildLifxService(deviceRepository)
+    const tplinkService = buildTplinkService()
+    const lifxService = buildLifxService()
     tplinkService.setLightState = jest.fn()
     lifxService.setLightState = jest.fn()
     const deviceService = new DeviceService({

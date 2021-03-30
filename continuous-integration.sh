@@ -13,7 +13,7 @@ function update() {
 
   docker build -t $DOCKER_IMAGE .
   docker rm -f smarthome
-  docker run -d --name smarthome -e PORT=3010 -e LIFX_TOKEN="$LIFX_TOKEN" --network host --restart=unless-stopped $DOCKER_IMAGE
+  docker run -d --name smarthome -p 3010:3010 -e PORT=3010 -e LIFX_TOKEN="$LIFX_TOKEN" --restart=unless-stopped $DOCKER_IMAGE
 }
 
 update &>update-output.txt

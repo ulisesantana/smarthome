@@ -1,5 +1,5 @@
 import { Device } from '../device.model'
-import { Provider } from '../../../common'
+import { Provider, ProviderRepository, ProviderService } from '../../../common'
 import { DeviceRepository } from '../device.repository'
 import { LifxRepository, LifxService, TplinkRepository, TplinkService } from '../../../infrastructure/providers'
 
@@ -12,8 +12,10 @@ type DeviceMockRepository = Partial<{
 
 type ProviderMockRepository = Partial<{
     getAllDevices: () => Promise<Device[]>,
-    setState: (device: Device) => Promise<Device>,
+    setState: (device: Device) => Promise<void>,
 }>
+
+type Constructor<T> = new (...args: any[]) => T;
 
 export function buildDeviceRepository ({
   findAll,
@@ -29,24 +31,30 @@ export function buildDeviceRepository ({
   return deviceMockRepository
 }
 
-export function buildTplinkService (deviceMockRepository: DeviceRepository, {
-  getAllDevices,
-  setState
-}: ProviderMockRepository = {}): TplinkService {
-  const tplinkMockRepository = new TplinkRepository('irrelevantUser', 'irrelevantPassword')
-  tplinkMockRepository.getAllDevices = mockFunction(getAllDevices)
-  tplinkMockRepository.setState = mockFunction(setState)
-  return new TplinkService(tplinkMockRepository, deviceMockRepository)
+export function buildTplinkService (mockRepository: ProviderMockRepository = {}): TplinkService {
+  return buildProviderService(
+    TplinkService,
+    new TplinkRepository('irrelevantUser', 'irrelevantPassword'),
+    mockRepository
+  )
 }
 
-export function buildLifxService (deviceMockRepository: DeviceRepository, {
-  getAllDevices,
-  setState
-}: ProviderMockRepository = {}): LifxService {
-  const lifxMockRepository = new LifxRepository('irrelevantToken')
-  lifxMockRepository.getAllDevices = mockFunction(getAllDevices)
-  lifxMockRepository.setState = mockFunction(setState)
-  return new LifxService(lifxMockRepository, deviceMockRepository)
+export function buildLifxService (mockRepository: ProviderMockRepository = {}): LifxService {
+  return buildProviderService(
+    LifxService,
+    new LifxRepository('irrelevantToken'),
+    mockRepository
+  )
+}
+
+function buildProviderService<T extends ProviderService> (
+  ServiceConstructor: Constructor<any>,
+  repository: ProviderRepository,
+  mockRepository: ProviderMockRepository = {}
+): T {
+  repository.getAllDevices = mockFunction(mockRepository.getAllDevices)
+  repository.setState = mockFunction(mockRepository.setState)
+  return new ServiceConstructor(repository)
 }
 
 function mockFunction<Return, Params extends any[]> (fn?: (...args: Params) => Return) {

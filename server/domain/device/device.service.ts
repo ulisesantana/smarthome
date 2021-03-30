@@ -26,25 +26,27 @@ export class DeviceService {
     return this.repository.findAll()
   }
 
-  async toggleDeviceById (id: string): Promise<Device[]> {
+  async setLightStateById (id: string, config: Partial<Device>): Promise<Device[]> {
     const device = await this.repository.findById(id)
-    if (device.provider === Provider.TpLink) {
-      await this.tplinkService.toggleDevice(device)
-    }
-    if (device.provider === Provider.Lifx) {
-      await this.lifxService.toggleDevice(device)
-    }
+    const updatedDevice = { ...device, ...config }
+    await this.setLightStateBasedOnProvider(updatedDevice)
     return this.getDevices()
   }
 
-  async setLightStateById (id: string, config: Partial<Device>): Promise<Device[]> {
+  async toggleDeviceById (id: string): Promise<Device[]> {
     const device = await this.repository.findById(id)
+    await this.setLightStateBasedOnProvider({ ...device, power: !device.power })
+    return this.getDevices()
+  }
+
+  private async setLightStateBasedOnProvider (device: Device): Promise<void> {
     if (device.provider === Provider.TpLink) {
-      await this.tplinkService.setLightState({ ...device, ...config })
+      await this.tplinkService.setLightState(device)
+      await this.repository.upsert(device)
     }
     if (device.provider === Provider.Lifx) {
-      await this.lifxService.setLightState({ ...device, ...config })
+      await this.lifxService.setLightState(device)
+      await this.repository.upsert(device)
     }
-    return this.getDevices()
   }
 }

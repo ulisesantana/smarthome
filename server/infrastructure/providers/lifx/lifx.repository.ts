@@ -62,7 +62,7 @@ export class LifxRepository implements ProviderRepository {
     return lights.map(LifxRepository.mapToDomain)
   }
 
-  async setState (device: Device): Promise<Device> {
+  async setState (device: Device): Promise<void> {
     const options = LifxRepository.mapToProvider(device)
     const body: StateOptions = {
       fast: true
@@ -96,7 +96,6 @@ export class LifxRepository implements ProviderRepository {
     console.debug(`Lifx set state for ${device.name}`, response.toJSON().body)
     console.debug(body)
     console.debug(`Response ${device.name}`, response.statusMessage)
-    return device
   }
 
   private static mapToProvider (device: Device): StateOptions {

@@ -5,14 +5,12 @@ import {
   DeviceRepository,
   DeviceService
 } from '../../../domain'
-import { LifxRepository, LifxService, TplinkRepository, TplinkService } from '../../providers'
+import { BootstrapLightsService } from '../../bootstrapLights.service'
 
 async function lightsAPI (server: FastifyInstance): Promise<void> {
   const deviceRepository = new DeviceRepository()
-  const [tplinkService, lifxService] = await Promise.all([
-    loadTplinkService(deviceRepository),
-    loadLifxService(deviceRepository)
-  ])
+  const bootstrapLightsService = new BootstrapLightsService(deviceRepository)
+  const { tplinkService, lifxService } = await bootstrapLightsService.init()
 
   const deviceService = new DeviceService({
     deviceRepository,
@@ -37,21 +35,6 @@ async function lightsAPI (server: FastifyInstance): Promise<void> {
       return await deviceService.toggleDeviceById(params.id)
     }
   )
-}
-
-async function loadLifxService (deviceRepository: DeviceRepository): Promise<LifxService> {
-  const lifxToken = process.env.LIFX_TOKEN ?? ''
-  const lifx = new LifxService(new LifxRepository(lifxToken), deviceRepository)
-  await lifx.init()
-  return lifx
-}
-
-async function loadTplinkService (deviceRepository: DeviceRepository): Promise<TplinkService> {
-  const tplinkUser = process.env.TPLINK_USER ?? ''
-  const tplinkPassword = process.env.TPLINK_PASS ?? ''
-  const tplink = new TplinkService(new TplinkRepository(tplinkUser, tplinkPassword), deviceRepository)
-  await tplink.init()
-  return tplink
 }
 
 export default lightsAPI
