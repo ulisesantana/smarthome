@@ -1,4 +1,4 @@
-import { TplinkService } from '../providers'
+import { TplinkRepository, TplinkService } from '../providers'
 import fp from 'fastify-plugin'
 
 declare module 'fastify' {
@@ -8,7 +8,9 @@ declare module 'fastify' {
 }
 
 export default fp(async (server) => {
-  const tplink = new TplinkService()
+  const tplinkUser = process.env.TPLINK_USER ?? ''
+  const tplinkPassword = process.env.TPLINK_PASS ?? ''
+  const tplink = new TplinkService(new TplinkRepository(tplinkUser, tplinkPassword))
   await tplink.init()
   server.decorate('tplink', tplink)
 }, '3.x')

@@ -4,7 +4,7 @@ import { TplinkRepository } from '../repositories'
 export class TplinkService implements ProviderService {
   private readonly devices = new Map<string, Device>()
 
-  constructor (private readonly tplinkRepository = new TplinkRepository()) {
+  constructor (private readonly tplinkRepository: TplinkRepository) {
   }
 
   async init (): Promise<void> {

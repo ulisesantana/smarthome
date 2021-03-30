@@ -24,13 +24,13 @@
     "fastify-static": "3.3.0",
     "fastify-swagger": "3.5.0",
     "fluent-json-schema": "2.0.3",
-    "lit-element": "2.4.0",
     "request": "2.88.2",
-    "tplink-smarthome-api": "3.1.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/node": "14.14.16",
     "@types/request": "^2.48.5",
+    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "4.11.1",
     "@typescript-eslint/parser": "4.11.1",
     "babel-eslint": "10.1.0",
