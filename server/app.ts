@@ -11,7 +11,7 @@ export default async function app (server: FastifyInstance): Promise<void> {
       options: { prefix: '/api' }
     }),
     server.register(import('fastify-static'), {
-      root: path.resolve('public')
+      root: path.resolve('client')
     })
   ])
 }

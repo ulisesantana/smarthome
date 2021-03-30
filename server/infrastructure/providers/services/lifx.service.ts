@@ -10,11 +10,11 @@ export class LifxService implements ProviderService {
   }
 
   async init (): Promise<void> {
-    await this.updateDevices()
+    await this.getAllLights()
   }
 
   async fetchDevices (): Promise<Device[]> {
-    await this.updateDevices()
+    await this.getAllLights()
     return this.getDevices()
   }
 
@@ -59,7 +59,7 @@ export class LifxService implements ProviderService {
     return this.getDevices()
   }
 
-  private async updateDevices (): Promise<void> {
+  private async getAllLights (): Promise<void> {
     const firstUpdate = this.devices.size === 0
     const lights: Device[] = await this.lifxRepository.getAllLights()
 

@@ -11,6 +11,7 @@ export class TplinkService implements ProviderService {
     const devices = await this.tplinkRepository.getAllDevices()
     for (const device of devices) {
       this.devices.set(device.name, device)
+      console.debug(`Found light ${device.name}`)
     }
   }
 
