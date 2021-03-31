@@ -20,6 +20,15 @@ export class DeviceRepository {
       }
     }
 
+    async findAllById (ids: string[]): Promise<Device[]> {
+      try {
+        const response = await this.mongodb.find<DeviceEntity>({ id: { $in: ids } })
+        return response.map(DeviceRepository.mapToDomain)
+      } catch (error) {
+        throw new DeviceError(error)
+      }
+    }
+
     async findById (id: string): Promise<Device> {
       try {
         const response = await this.mongodb.findOne<DeviceEntity>({ id })

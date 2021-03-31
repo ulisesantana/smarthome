@@ -1,2 +1,4 @@
-export * from '../device/device.service'
-export * from '../room/room.service'
+export * from './room.error'
+export * from './room.model'
+export * from './room.repository'
+export * from './room.service'

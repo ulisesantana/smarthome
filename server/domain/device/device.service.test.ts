@@ -1,8 +1,7 @@
-import { buildDeviceRepository, buildLifxService, buildTplinkService } from './device.service.build'
-import { buildDevice } from './device.build'
-import { DeviceService, DeviceServiceConstructorParams } from '../device.service'
-import { Provider } from '../../../common'
-import { Device } from '../device.model'
+import { buildDeviceRepository, buildLifxService, buildTplinkService, buildDevice } from '../../common/test'
+import { DeviceService, DeviceServiceConstructorParams } from './device.service'
+import { Provider } from '../../common'
+import { Device } from './device.model'
 
 describe('Device service should', () => {
   it('get all devices from database', async () => {

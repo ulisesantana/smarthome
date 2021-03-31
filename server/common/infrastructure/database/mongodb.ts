@@ -44,6 +44,22 @@ export class MongoDB {
     }
   }
 
+  async aggregate<T> (pipeline: object[]): Promise<T> {
+    const result = await this.on(() => this.getCollection(this.collection).aggregate(pipeline).toArray())
+    if (result.ok) {
+      return result.data || [] as T[]
+    } else {
+      throw new MongoError(result.error)
+    }
+  }
+
+  async remove<T> (filter: FilterQuery<T>): Promise<void> {
+    const result = await this.on(() => this.getCollection(this.collection).deleteOne(filter))
+    if (!result.ok) {
+      throw new MongoError(result.error)
+    }
+  }
+
   private getCollection (collection: string): Collection {
     return this.instance.db(process.env.mongodb_database).collection(collection)
   }

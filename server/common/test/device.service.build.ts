@@ -1,7 +1,7 @@
-import { Device } from '../device.model'
-import { Provider, ProviderRepository, ProviderService } from '../../../common'
-import { DeviceRepository } from '../device.repository'
-import { LifxRepository, LifxService, TplinkRepository, TplinkService } from '../../../infrastructure/providers'
+import { Device, DeviceRepository, DeviceService } from '../../domain'
+import { Provider, ProviderRepository, ProviderService } from '../index'
+import { LifxRepository, LifxService, TplinkRepository, TplinkService } from '../../infrastructure/providers'
+import { mockFunction } from './mockFunction'
 
 type DeviceMockRepository = Partial<{
     findAll: () => Promise<Device[]>,
@@ -16,6 +16,24 @@ type ProviderMockRepository = Partial<{
 }>
 
 type Constructor<T> = new (...args: any[]) => T;
+
+type BuildDeviceServiceParams = Partial<{
+    deviceMockRepository: DeviceMockRepository,
+    tplinkMockRepository: ProviderMockRepository,
+    lifxMockRepository: ProviderMockRepository
+}>
+
+export function buildDeviceService ({
+  deviceMockRepository,
+  lifxMockRepository,
+  tplinkMockRepository
+}: BuildDeviceServiceParams = {}): DeviceService {
+  return new DeviceService({
+    deviceRepository: buildDeviceRepository(deviceMockRepository),
+    tplinkService: buildTplinkService(tplinkMockRepository),
+    lifxService: buildLifxService(lifxMockRepository)
+  })
+}
 
 export function buildDeviceRepository ({
   findAll,
@@ -55,8 +73,4 @@ function buildProviderService<T extends ProviderService> (
   repository.getAllDevices = mockFunction(mockRepository.getAllDevices)
   repository.setState = mockFunction(mockRepository.setState)
   return new ServiceConstructor(repository)
-}
-
-function mockFunction<Return, Params extends any[]> (fn?: (...args: Params) => Return) {
-  return fn ? jest.fn<Return, Params>(fn) : jest.fn<Return, Params>()
 }

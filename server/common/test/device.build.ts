@@ -1,5 +1,5 @@
-import { Device, DeviceType } from '../device.model'
-import { generateId, Provider } from '../../../common'
+import { Device, DeviceType } from '../../domain'
+import { generateId, Provider } from '../index'
 
 export function buildDevice (device: Partial<Device> = {}): Device {
   return {
