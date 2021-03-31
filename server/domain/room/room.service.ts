@@ -39,10 +39,16 @@ export class RoomService {
     await this.repository.remove(id)
   }
 
-  async toggleDevicesByRoomId (id: string): Promise<void> {
+  async toggleDevicesByRoomId (id: string): Promise<Room> {
     const room = await this.getById(id)
+    const someDeviceIsPoweredUp = room.devices.some(({ power }) => power)
+    const newPowerState = !someDeviceIsPoweredUp
     for (const device of room.devices) {
-      await this.deviceService.toggleDeviceById(device.id)
+      if (device.power !== newPowerState) {
+        await this.deviceService.setLightStateById(device.id, { power: !device.power })
+        device.power = !device.power
+      }
     }
+    return room
   }
 }
