@@ -45,8 +45,8 @@ export class RoomService {
     const newPowerState = !someDeviceIsPoweredUp
     for (const device of room.devices) {
       if (device.power !== newPowerState) {
-        await this.deviceService.setLightStateById(device.id, { power: !device.power })
-        device.power = !device.power
+        await this.deviceService.setLightStateById(device.id, { power: newPowerState })
+        device.power = newPowerState
       }
     }
     return room

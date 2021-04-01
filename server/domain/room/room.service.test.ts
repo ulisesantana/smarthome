@@ -94,8 +94,8 @@ describe('Room service should', () => {
       const mockedRoom = buildRoom({
         devices: [
           buildDevice({ id: 'irrelevantDevice1', power: true }),
-          buildDevice({ id: 'irrelevantDevice1', power: false }),
-          buildDevice({ id: 'irrelevantDevice1', power: false })
+          buildDevice({ id: 'irrelevantDevice2', power: false }),
+          buildDevice({ id: 'irrelevantDevice3', power: false })
         ]
       })
       const toggledRoom = {
@@ -117,8 +117,8 @@ describe('Room service should', () => {
       const mockedRoom = buildRoom({
         devices: [
           buildDevice({ id: 'irrelevantDevice1', power: false }),
-          buildDevice({ id: 'irrelevantDevice1', power: false }),
-          buildDevice({ id: 'irrelevantDevice1', power: false })
+          buildDevice({ id: 'irrelevantDevice2', power: false }),
+          buildDevice({ id: 'irrelevantDevice3', power: false })
         ]
       })
       const toggledRoom = {
