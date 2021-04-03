@@ -1,6 +1,6 @@
-import { Light, LightType } from '../../light'
-import { generateId } from '../../common'
-import { Provider } from '../../provider'
+import { Light, LightType } from '../../../light'
+import { generateId } from '../../index'
+import { Provider } from '../../../provider'
 
 export function buildLight (light: Partial<Light> = {}): Light {
   return {

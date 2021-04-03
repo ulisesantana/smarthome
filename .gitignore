@@ -61,4 +61,4 @@ profile*
 package-lock.json
 .env
 update-output.txt
-db/mongo/database
+test/db/mongo/database

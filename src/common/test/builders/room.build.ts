@@ -1,4 +1,4 @@
-import { Room, RoomEntity } from '../../room'
+import { Room, RoomEntity } from '../../../room'
 import { buildLight } from './light.build'
 
 export function buildRoomEntity (room: Partial<RoomEntity> = {}): RoomEntity {

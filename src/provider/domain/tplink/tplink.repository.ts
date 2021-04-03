@@ -54,8 +54,9 @@ export class TplinkRepository implements ProviderRepository {
         @inject(Environment) private readonly environment: Environment,
         @inject(MongoDB) instance: MongoDB
     ) {
-      this.user = process.env.TPLINK_USER || ''
-      this.password = process.env.TPLINK_PASS || ''
+      const { tplinkUser, tplinkPassword } = this.environment.getVariables()
+      this.user = tplinkUser
+      this.password = tplinkPassword
       this.mongodb = instance.useCollection(TplinkRepository.collection)
       if (this.environment.isProduction()) {
         if (!this.user) {
@@ -89,13 +90,7 @@ export class TplinkRepository implements ProviderRepository {
 
       const response = await http.post(url, request)
       const { deviceList } = response.toJSON().body.result
-      await this.saveDeviceList(deviceList)
-      const lights = []
-      // FIXME Move this to an async iterator
-      for (const { deviceId } of deviceList) {
-        lights.push(await this.getDevice(deviceId))
-      }
-      return lights
+      return this.processDeviceList(deviceList)
     }
 
     async setState (device: Light): Promise<void> {
@@ -109,14 +104,34 @@ export class TplinkRepository implements ProviderRepository {
       }
     }
 
-    private async saveDeviceList (devices: TpLinkDevice[]): Promise<void> {
-      // FIXME Move this to an async iterator
+    private async processDeviceList (deviceList: TpLinkDevice[]): Promise<Light[]> {
+      const deviceListIds = []
+      for await (const { deviceId } of this.saveDeviceList(deviceList)) {
+        deviceListIds.push(deviceId)
+      }
+
+      const lights = []
+      for await (const light of this.getLightsById(deviceListIds)) {
+        lights.push(light)
+      }
+      return lights
+    }
+
+    private async * saveDeviceList (devices: TpLinkDevice[]): AsyncGenerator<TpLinkDevice> {
       for (const device of devices) {
         await this.mongodb.upsertOne({ deviceId: device.deviceId }, device)
+        yield device
       }
     }
 
-    private async getDevice (id: string): Promise<Light> {
+    private async * getLightsById (ids: string[]): AsyncGenerator<Light> {
+      for (const id of ids) {
+        const light = await this.getLightById(id)
+        yield light
+      }
+    }
+
+    private async getLightById (id: string): Promise<Light> {
       const device = await this.getTpLinkDevice(id)
       if (device?.deviceId === undefined) {
         throw new Error(`TPLink device with id ${id} doesn't exist.`)

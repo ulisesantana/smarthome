@@ -14,6 +14,7 @@ export interface MongoAPI {
     find: <T> (filter: FilterQuery<T>) => Promise<T[]>
     aggregate: <T> (pipeline: object[]) => Promise<T>
     remove: <T> (filter: FilterQuery<T>) => Promise<void>
+    removeCollection: () => Promise<void>
 }
 
 @injectable()
@@ -69,6 +70,12 @@ export class MongoDB {
         if (!result.ok) {
           throw new MongoError(result.error)
         }
+      },
+
+      removeCollection: async (): Promise<void> => {
+        if (this.environment.isTest()) {
+          await this.on(() => this.getCollection(collectionName).drop())
+        }
       }
     }
   }
@@ -104,25 +111,37 @@ export class MongoDB {
   }
 
   private getClient () {
-    const user: string = process.env.MONGODB_USER || ''
-    const password: string = process.env.MONGODB_PASSWORD || ''
-    const host: string = process.env.MONGODB_HOST || '127.0.0.1'
-    const port: string = process.env.MONGODB_PORT || '27017'
-    const database: string = process.env.MONGODB_DATABASE || ''
+    const {
+      mongoDatabase,
+      mongoHost,
+      mongoPassword,
+      mongoPort,
+      mongoUser
+    } = this.environment.getVariables()
 
     if (this.environment.isProduction()) {
-      if (!user) {
+      if (!mongoUser) {
         throw new Error('Missing user for MongoDB connection')
       }
-      if (!password) {
+      if (!mongoPassword) {
         throw new Error('Missing password for MongoDB connection')
       }
-      if (!database) {
+      if (!mongoDatabase) {
         throw new Error('Missing database for MongoDB connection')
       }
     }
 
-    const mongoUri = `mongodb://${user}:${password}@${host}:${port}/${database}`
+    const mongoUri = `mongodb://${
+      mongoUser
+    }:${
+      mongoPassword
+    }@${
+      mongoHost
+    }:${
+      mongoPort
+    }/${
+      mongoDatabase
+    }`
     return new MongoClient(mongoUri, {
       useUnifiedTopology: true
     })

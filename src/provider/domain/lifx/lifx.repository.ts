@@ -51,7 +51,7 @@ export class LifxRepository implements ProviderRepository {
   private readonly token: string
 
   constructor (@inject(Environment) private readonly environment: Environment) {
-    this.token = process.env.LIFX_TOKEN || ''
+    this.token = environment.getVariables().lifxToken
     if (this.environment.isProduction()) {
       if (!this.token) {
         console.error('Missing Lifx token. Exiting application.')

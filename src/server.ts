@@ -6,6 +6,7 @@ import { lightRoutes } from './light'
 import { roomRoutes } from './room'
 import { AppBootstrap } from './app.bootstrap'
 import { container } from 'tsyringe'
+import { Environment } from './common'
 
 type ServerOptions = RouteShorthandOptions & {
     docsHost?: string,
@@ -26,14 +27,15 @@ export async function buildServer (options: ServerOptions = {
 }
 
 function prepareServerBasedOnEnvironment (options: ServerOptions): FastifyInstance {
-  if (process.env.NODE_ENV === 'test') {
+  const environment = new Environment()
+  if (environment.isTest()) {
     dotenv.config()
     return fastify({
       ...options,
       disableRequestLogging: true
     })
   }
-  if (process.env.NODE_ENV === 'development') {
+  if (environment.isDevelopment()) {
     dotenv.config()
     const server = fastify({
       ...options,
