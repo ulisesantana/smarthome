@@ -3,20 +3,18 @@ import { inject, injectable } from 'tsyringe'
 
 @injectable()
 export class LightController {
-  constructor (@inject(LightService) private readonly deviceService: LightService) {
+  constructor (@inject(LightService) private readonly lightService: LightService) {
   }
 
-  getDevices (): Promise<Light[]> {
-    return this.deviceService.getLights()
+  getLights (): Promise<Light[]> {
+    return this.lightService.getLights()
   }
 
-  async setLightStateById (id: string, config: Partial<Light>): Promise<Light[]> {
-    await this.deviceService.setLightStateById(id, config)
-    return this.getDevices()
+  setLightStateById (id: string, config: Partial<Light>): Promise<Light> {
+    return this.lightService.setLightStateById(id, config)
   }
 
-  async toggleDeviceById (id: string): Promise<Light[]> {
-    await this.deviceService.toggleDeviceById(id)
-    return this.getDevices()
+  toggleLightById (id: string): Promise<Light> {
+    return this.lightService.toggleLightById(id)
   }
 }

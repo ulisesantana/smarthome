@@ -1,14 +1,6 @@
 import S from 'fluent-json-schema'
 import { LightService } from '..'
-
-const lightStatusExample = {
-  id: '8012B8B0F5D53BA83219C34E90520A131884C091',
-  name: 'Puerta Terraza',
-  type: 'bulb',
-  brightness: 100,
-  colorTemp: 2700,
-  power: true
-}
+import { generateInternalServerErrorSchema } from '../../common'
 
 export const lightStatus = S.object()
   .title('Light Status')
@@ -18,17 +10,15 @@ export const lightStatus = S.object()
   .prop('type', S.string().required())
   .prop('brightness', S.string())
   .prop('colorTemp', S.string())
-  .examples([lightStatusExample])
-
-export const lightStatusResponse = S.array()
-  .description('Successful response')
-  .items(lightStatus)
 
 export const getLightStatus = {
   tags: ['lights'],
   summary: 'Get light status',
   response: {
-    200: lightStatusResponse
+    200: S.array()
+      .description('Successful response')
+      .items(lightStatus),
+    500: generateInternalServerErrorSchema('Error retrieving lights.')
   }
 }
 
@@ -37,7 +27,10 @@ export const toggleLightById = {
   summary: 'Toggle device by id',
   params: S.object().prop('id', S.string().required()),
   response: {
-    200: lightStatusResponse
+    200: S.object()
+      .description('Successful response')
+      .extend(lightStatus),
+    500: generateInternalServerErrorSchema('Error toggling light.')
   }
 }
 
@@ -48,9 +41,11 @@ export const updateLightStatusById = {
   body: S.object()
     .prop('power', S.boolean())
     .prop('colorTemp', S.number().minimum(LightService.warmLight).maximum(LightService.whiteLight))
-    .prop('brightness', S.number().minimum(0).maximum(100))
-    .examples([{ power: true, colorTemp: 3200, brightness: 50 }]),
+    .prop('brightness', S.number().minimum(0).maximum(100)),
   response: {
-    200: lightStatusResponse
+    200: S.object()
+      .description('Successful response')
+      .extend(lightStatus),
+    500: generateInternalServerErrorSchema('Error updating light.')
   }
 }

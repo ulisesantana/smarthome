@@ -6,8 +6,8 @@
     "prestart": "npm run build",
     "start": "node NODE_ENV=production bin/runServer.js",
     "build": "npm run lint && tsc",
-    "database:up": "mkdir -p db/mongo/database && docker-compose -f db/mongo/docker-compose.yml up -d",
-    "database:down": "docker-compose -f db/mongo/docker-compose.yml down",
+    "database:up": "mkdir -p test/db/mongo/database && docker-compose -f test/db/mongo/docker-compose.yml up -d",
+    "database:down": "docker-compose -f test/db/mongo/docker-compose.yml down",
     "dev": "npm run build && NODE_ENV=development node --trace-warnings bin/runServer.js",
     "dev:watch": "npm run build -- --watch & NODE_ENV=development nodemon bin/runServer.js",
     "docker:generate": "docker build -t $(node -pe \"require('./package.json').name.concat(':').concat(require('./package.json').version)\") .",
@@ -25,6 +25,7 @@
     "fastify-cors": "5.2.0",
     "fastify-swagger": "3.5.0",
     "fluent-json-schema": "2.0.3",
+    "http-errors": "^1.8.0",
     "mongodb": "3.6.5",
     "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
@@ -32,6 +33,7 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
+    "@types/http-errors": "^1.8.0",
     "@types/jest": "26.0.22",
     "@types/mongodb": "3.6.10",
     "@types/node": "14.14.16",
