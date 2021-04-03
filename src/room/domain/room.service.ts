@@ -1,7 +1,7 @@
-import { Room, RoomEntity } from './room.model'
+import { Room, RoomEntity, RoomRequest } from './room.model'
 import { RoomRepository } from './room.repository'
 import { generateId } from '../../common'
-import { LightService } from '../../light'
+import { Light, LightService } from '../../light'
 import { inject, injectable } from 'tsyringe'
 
 @injectable()
@@ -11,7 +11,7 @@ export class RoomService {
         @inject(RoomRepository) private readonly repository: RoomRepository
   ) {}
 
-  async create (room: Partial<RoomEntity> = {}): Promise<Room> {
+  async create (room: Partial<RoomRequest> = {}): Promise<Room> {
     const newRoom: RoomEntity = {
       id: generateId(),
       color: room.color ?? '#708090',
@@ -35,7 +35,7 @@ export class RoomService {
     return this.repository.findAll()
   }
 
-  async update (id: string, room: Partial<Room>): Promise<Room> {
+  async update (id: string, room: Partial<RoomRequest>): Promise<Room> {
     await this.repository.update({ ...room, id })
     return this.getById(id)
   }
@@ -44,17 +44,28 @@ export class RoomService {
     await this.repository.remove(id)
   }
 
-  async toggleDevicesByRoomId (id: string): Promise<Room> {
+  async toggleLightsByRoomId (id: string): Promise<Room> {
     const room = await this.getById(id)
-    const someDeviceIsPoweredUp = room.lights.some(({ power }) => power)
-    const newPowerState = !someDeviceIsPoweredUp
-    // FIXME Don't await in a loop
-    for (const device of room.lights) {
-      if (device.power !== newPowerState) {
-        await this.lightService.setLightStateById(device.id, { power: newPowerState })
-        device.power = newPowerState
-      }
+    const updatedLights = []
+    for await (const light of this.toggleLights(room.lights)) {
+      updatedLights.push(light)
     }
+    room.lights = updatedLights
     return room
+  }
+
+  private async * toggleLights (lights: Light[]): AsyncGenerator<Light> {
+    const newRoomPowerState = !RoomService.anyLightIsPoweredUp(lights)
+    for (const light of lights) {
+      if (light.power !== newRoomPowerState) {
+        await this.lightService.toggleLightById(light.id)
+        light.power = !light.power
+      }
+      yield light
+    }
+  }
+
+  private static anyLightIsPoweredUp (lights: Light[]): boolean {
+    return lights.some(({ power }) => power)
   }
 }

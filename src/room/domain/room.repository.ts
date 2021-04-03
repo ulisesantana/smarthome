@@ -16,10 +16,10 @@ export class RoomRepository {
       try {
         return await this.mongodb.aggregate<Room[]>([{
           $lookup: {
-            from: 'devices',
-            localField: 'devices',
+            from: 'lights',
+            localField: 'lights',
             foreignField: 'id',
-            as: 'devices'
+            as: 'lights'
           }
         }])
       } catch (error) {
@@ -33,10 +33,10 @@ export class RoomRepository {
           { $match: { id } },
           {
             $lookup: {
-              from: 'devices',
-              localField: 'devices',
+              from: 'lights',
+              localField: 'lights',
               foreignField: 'id',
-              as: 'devices'
+              as: 'lights'
             }
           }])
       } catch (error) {
@@ -52,9 +52,9 @@ export class RoomRepository {
       }
     }
 
-    async update (room: Partial<Room>): Promise<void> {
+    async update (room: Partial<RoomEntity>): Promise<void> {
       try {
-        await this.mongodb.upsertOne<RoomEntity>({ id: room.id }, RoomRepository.mapToDatabase(room))
+        await this.mongodb.upsertOne<RoomEntity>({ id: room.id }, room)
       } catch (error) {
         throw new RoomError(error)
       }
@@ -66,15 +66,5 @@ export class RoomRepository {
       } catch (error) {
         throw new RoomError(error)
       }
-    }
-
-    private static mapToDatabase ({ lights, ...roomWithoutDevices }: Partial<Room>): Partial<RoomEntity> {
-      if (lights) {
-        return {
-          ...roomWithoutDevices,
-          lights: lights.map(({ id }) => id)
-        }
-      }
-      return roomWithoutDevices
     }
 }

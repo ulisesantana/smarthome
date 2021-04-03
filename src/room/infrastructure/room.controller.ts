@@ -1,4 +1,4 @@
-import { Room, RoomEntity, RoomService } from '..'
+import { Room, RoomEntity, RoomRequest, RoomService } from '..'
 import { inject, injectable } from 'tsyringe'
 
 @injectable()
@@ -17,7 +17,7 @@ export class RoomController {
     return this.roomService.create(room)
   }
 
-  updateRoom (id: string, room: Partial<Room>): Promise<Room> {
+  updateRoom (id: string, room: Partial<RoomRequest>): Promise<Room> {
     return this.roomService.update(id, room)
   }
 
@@ -25,8 +25,7 @@ export class RoomController {
     await this.roomService.remove(id)
   }
 
-  async toggleRoomById (id: string): Promise<Room[]> {
-    await this.roomService.toggleDevicesByRoomId(id)
-    return this.getRooms()
+  async toggleRoomById (id: string): Promise<void> {
+    await this.roomService.toggleLightsByRoomId(id)
   }
 }
