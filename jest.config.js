@@ -8,7 +8,8 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
   testEnvironment: 'node',
-  roots: ['<rootDir>/server'],
+  roots: ['<rootDir>/src'],
+  setupFilesAfterEnv: ['<rootDir>/src/test/setupTests.ts'],
   testMatch: ['**/__tests__/**/*.+(ts|js)', '**/?(*.)+(spec|test).+(ts|js)'],
   transform: {
     '^.+\\.(ts)?$': 'ts-jest'

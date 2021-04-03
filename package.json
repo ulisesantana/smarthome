@@ -1,17 +1,17 @@
 {
   "name": "smarthome-api",
   "version": "2.3.1",
-  "main": "build/infrastructure/server.js",
+  "main": "bin/runServer.js",
   "scripts": {
     "prestart": "npm run build",
-    "start": "node NODE_ENV=production build/infrastructure/server.js",
+    "start": "node NODE_ENV=production bin/runServer.js",
     "build": "npm run lint && tsc",
     "database:up": "mkdir -p db/mongo/database && docker-compose -f db/mongo/docker-compose.yml up -d",
     "database:down": "docker-compose -f db/mongo/docker-compose.yml down",
-    "dev": "npm run build && NODE_ENV=development node --trace-warnings build/infrastructure/server.js",
-    "dev:watch": "npm run build -- --watch & NODE_ENV=development nodemon build/infrastructure/server.js",
+    "dev": "npm run build && NODE_ENV=development node --trace-warnings bin/runServer.js",
+    "dev:watch": "npm run build -- --watch & NODE_ENV=development nodemon bin/runServer.js",
     "docker:generate": "docker build -t $(node -pe \"require('./package.json').name.concat(':').concat(require('./package.json').version)\") .",
-    "lint": "eslint ./server --ext .ts",
+    "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "tag": "TAG=v$(node -pe \"require('./package.json').version\"); git commit -am \"🔖 $TAG\" && git tag $TAG && git push && git push --tags",
     "test": "jest --verbose",
@@ -22,14 +22,13 @@
   "dependencies": {
     "dotenv": "8.2.0",
     "fastify": "3.9.2",
-    "fastify-autoload": "3.4.0",
     "fastify-cors": "5.2.0",
-    "fastify-plugin": "3.0.0",
-    "fastify-static": "3.3.0",
     "fastify-swagger": "3.5.0",
     "fluent-json-schema": "2.0.3",
     "mongodb": "3.6.5",
+    "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
+    "tsyringe": "^4.5.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {
@@ -48,7 +47,6 @@
     "jest": "26.6.3",
     "nodemon": "2.0.6",
     "pino-pretty": "4.3.0",
-    "ts-essentials": "7.0.1",
     "ts-jest": "26.5.4",
     "typescript": "3.9.7"
   },

@@ -3,7 +3,7 @@ db.createUser({
   pwd: 'smarthome',
   roles: [{ role: 'readWrite', db: 'smarthome' }]
 })
-db.createCollection('devices')
+db.createCollection('lights')
 db.createCollection('rooms')
 db.createCollection('scenes')
 db.createCollection('automations')
