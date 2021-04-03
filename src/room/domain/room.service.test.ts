@@ -1,5 +1,5 @@
 import { RoomService } from './room.service'
-import { buildRoomEntity, buildRoom, buildLight } from '../../test'
+import { buildRoomEntity, buildRoom, buildLight } from '../../common/test'
 import { RoomRepository } from './room.repository'
 import { LightService } from '../../light'
 import { container } from 'tsyringe'
@@ -19,7 +19,7 @@ describe('Room service should', () => {
     container.clearInstances()
     roomRepository = container.resolve(RoomRepository)
     lightService = container.resolve(LightService)
-    lightService.setLightStateById = jest.fn()
+    lightService.toggleLightById = jest.fn()
     roomRepository.create = jest.fn()
     roomRepository.update = jest.fn()
     roomRepository.remove = jest.fn()
@@ -84,7 +84,7 @@ describe('Room service should', () => {
     expect(roomRepository.findById).toBeCalledWith(mockedRoom.id)
   })
 
-  it('update room', async () => {
+  it('update a room and return it', async () => {
     const mockedRoom = buildRoom()
     const updates = { name: 'Kitchen', color: 'blue' }
     const updatedRoom = { ...mockedRoom, ...updates }
@@ -124,10 +124,10 @@ describe('Room service should', () => {
       }
       mockRepository({ findById: { ...mockedRoom } })
 
-      const room = await new RoomService(lightService, roomRepository).toggleDevicesByRoomId(mockedRoom.id)
+      const room = await new RoomService(lightService, roomRepository).toggleLightsByRoomId(mockedRoom.id)
 
       expect(room).toStrictEqual(toggledRoom)
-      expect(lightService.setLightStateById).toHaveBeenCalledTimes(1)
+      expect(lightService.toggleLightById).toHaveBeenCalledTimes(1)
     })
     it('if all devices are powered off then all will be powered on', async () => {
       const mockedRoom = buildRoom({
@@ -146,10 +146,10 @@ describe('Room service should', () => {
       }
       mockRepository({ findById: { ...mockedRoom } })
 
-      const room = await new RoomService(lightService, roomRepository).toggleDevicesByRoomId(mockedRoom.id)
+      const room = await new RoomService(lightService, roomRepository).toggleLightsByRoomId(mockedRoom.id)
 
       expect(room).toStrictEqual(toggledRoom)
-      expect(lightService.setLightStateById).toHaveBeenCalledTimes(3)
+      expect(lightService.toggleLightById).toHaveBeenCalledTimes(3)
     })
   })
 })

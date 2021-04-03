@@ -1,4 +1,4 @@
-import { buildLight } from '../../test'
+import { buildLight } from '../../common/test'
 import { LightService } from './light.service'
 import { Light } from './light.model'
 import { LifxRepository, LifxService, Provider, TplinkRepository, TplinkService } from '../../provider'
@@ -58,12 +58,20 @@ describe('Light service should', () => {
     const light = buildLight({ id: 'irrelevantDevice', provider: Provider.TpLink, power: true })
     mockRepositories({ findById: light })
 
-    await new LightService(
+    const updatedLight = await new LightService(
       lightRepositoryMock,
       tplinkServiceMock,
       lifxServiceMock
-    ).toggleDeviceById(light.id)
+    ).toggleLightById(light.id)
 
+    expect(updatedLight.power).toBe(!light.power)
+    expect(updatedLight.id).toBe(light.id)
+    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.available).toBe(light.available)
+    expect(updatedLight.brightness).toBe(light.brightness)
+    expect(updatedLight.colorTemp).toBe(light.colorTemp)
+    expect(updatedLight.name).toBe(light.name)
+    expect(updatedLight.type).toBe(light.type)
     expect(tplinkServiceMock.setLightState).toHaveBeenCalledWith({ ...light, power: false })
     expect(lifxServiceMock.setLightState).not.toHaveBeenCalled()
     expect(lightRepositoryMock.findById).toHaveBeenCalled()
@@ -73,12 +81,20 @@ describe('Light service should', () => {
     const light = buildLight({ id: 'irrelevantDevice', provider: Provider.Lifx, power: true })
     mockRepositories({ findById: light })
 
-    await new LightService(
+    const updatedLight = await new LightService(
       lightRepositoryMock,
       tplinkServiceMock,
       lifxServiceMock
-    ).toggleDeviceById(light.id)
+    ).toggleLightById(light.id)
 
+    expect(updatedLight.power).toBe(!light.power)
+    expect(updatedLight.id).toBe(light.id)
+    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.available).toBe(light.available)
+    expect(updatedLight.brightness).toBe(light.brightness)
+    expect(updatedLight.colorTemp).toBe(light.colorTemp)
+    expect(updatedLight.name).toBe(light.name)
+    expect(updatedLight.type).toBe(light.type)
     expect(lifxServiceMock.setLightState).toHaveBeenCalledWith({ ...light, power: false })
     expect(tplinkServiceMock.setLightState).not.toHaveBeenCalled()
     expect(lightRepositoryMock.findById).toHaveBeenCalled()
@@ -89,12 +105,20 @@ describe('Light service should', () => {
     const config = { power: false, brightness: 50 }
     mockRepositories({ findById: light })
 
-    await new LightService(
+    const updatedLight = await new LightService(
       lightRepositoryMock,
       tplinkServiceMock,
       lifxServiceMock
     ).setLightStateById(light.id, config)
 
+    expect(updatedLight.power).toBe(config.power)
+    expect(updatedLight.id).toBe(light.id)
+    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.available).toBe(light.available)
+    expect(updatedLight.brightness).toBe(config.brightness)
+    expect(updatedLight.colorTemp).toBe(light.colorTemp)
+    expect(updatedLight.name).toBe(light.name)
+    expect(updatedLight.type).toBe(light.type)
     expect(tplinkServiceMock.setLightState).toHaveBeenCalledWith({ ...light, ...config })
     expect(lifxServiceMock.setLightState).not.toHaveBeenCalled()
     expect(lightRepositoryMock.findById).toHaveBeenCalled()
@@ -105,12 +129,20 @@ describe('Light service should', () => {
     const config = { power: false, brightness: 50 }
     mockRepositories({ findById: light })
 
-    await new LightService(
+    const updatedLight = await new LightService(
       lightRepositoryMock,
       tplinkServiceMock,
       lifxServiceMock
     ).setLightStateById(light.id, config)
 
+    expect(updatedLight.power).toBe(config.power)
+    expect(updatedLight.id).toBe(light.id)
+    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.available).toBe(light.available)
+    expect(updatedLight.brightness).toBe(config.brightness)
+    expect(updatedLight.colorTemp).toBe(light.colorTemp)
+    expect(updatedLight.name).toBe(light.name)
+    expect(updatedLight.type).toBe(light.type)
     expect(lifxServiceMock.setLightState).toHaveBeenCalledWith({ ...light, ...config })
     expect(tplinkServiceMock.setLightState).not.toHaveBeenCalled()
     expect(lightRepositoryMock.findById).toHaveBeenCalled()
