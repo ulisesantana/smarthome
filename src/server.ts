@@ -7,6 +7,7 @@ import { roomRoutes } from './room'
 import { AppBootstrap } from './app.bootstrap'
 import { container } from 'tsyringe'
 import { Environment } from './common'
+import { sceneRoutes } from './scene'
 
 type ServerOptions = RouteShorthandOptions & {
     docsHost?: string,
@@ -22,6 +23,7 @@ export async function buildServer (options: ServerOptions = {
 
   lightRoutes(server)
   roomRoutes(server)
+  sceneRoutes(server)
 
   return server
 }

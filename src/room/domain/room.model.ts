@@ -1,12 +1,6 @@
-import { Light } from '../../light'
+import { LightGroup } from '../../common/domain/lightGroup/lightGroup.model'
 
-export interface Room {
-    id: string
-    name: string
-    color: string
-    icon: string
-    lights: Light[]
-}
+export type Room = LightGroup
 
 export type RoomEntity = Omit<Room, 'lights'> & {
     lights: string[]

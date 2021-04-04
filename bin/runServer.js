@@ -1,4 +1,4 @@
-const { buildServer } = require('../build/server')
+const { buildServer } = require('../build/src/server')
 
 const PORT = process.env.PORT ?? 3000
 const docsRoute = process.env.DOCS_ROUTE ?? '/docs'
