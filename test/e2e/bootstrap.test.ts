@@ -1,6 +1,5 @@
 import { Light, LightRepository } from '../../src/light'
 import { buildServer } from '../../src/server'
-import { FastifyInstance } from 'fastify'
 import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
 import { LifxRepository, Provider, TplinkRepository } from '../../src/provider'
@@ -9,7 +8,6 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-let server: FastifyInstance
 let mockRepositories: Function
 const lightsCollection = container.resolve(MongoDB).useCollection(LightRepository.collection)
 const lightRepository = container.resolve(LightRepository)
@@ -42,7 +40,7 @@ describe('Smarthome API Bootstrap should', () => {
     let lights = await lightRepository.findAll()
     expect(lights).toHaveLength(0)
 
-    server = await buildServer()
+    const server = await buildServer()
     await server.close()
 
     lights = await lightRepository.findAll()
@@ -76,7 +74,7 @@ describe('Smarthome API Bootstrap should', () => {
         })]
     })
 
-    server = await buildServer()
+    const server = await buildServer()
     await server.close()
 
     expect(console.info).toBeCalledWith('Light Lifx unavailable not found.')

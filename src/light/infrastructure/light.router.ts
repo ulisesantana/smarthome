@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { getLightStatus, toggleLightById, updateLightStatusById } from './light.schema'
 import { Light, LightController } from '../'
 import { container } from 'tsyringe'
-import { InternalServerError } from 'http-errors'
+import { InternalServerError, NotFound } from 'http-errors'
 
 export function lightRoutes (server: FastifyInstance): void {
   const lightsController = container.resolve(LightController)
@@ -27,7 +27,11 @@ export function lightRoutes (server: FastifyInstance): void {
     async function ({ params: { id }, body }, reply) {
       try {
         const updatedLight = await lightsController.setLightStateById(id, body)
-        reply.send(updatedLight)
+        if (updatedLight.id !== '') {
+          reply.send(updatedLight)
+        } else {
+          reply.send(new NotFound(`Light with id ${id} not found.`))
+        }
       } catch (err) {
         console.error(err.toString())
         reply.send(new InternalServerError(`Error updating light with id ${id}.`))
@@ -41,7 +45,11 @@ export function lightRoutes (server: FastifyInstance): void {
     async function ({ params: { id } }, reply) {
       try {
         const updatedLight = await lightsController.toggleLightById(id)
-        reply.send(updatedLight)
+        if (updatedLight.id !== '') {
+          reply.send(updatedLight)
+        } else {
+          reply.send(new NotFound(`Light with id ${id} not found.`))
+        }
       } catch (err) {
         console.error(err.toString())
         reply.send(new InternalServerError(`Error toggling light with id ${id}.`))

@@ -8,8 +8,10 @@ export const lightStatus = S.object()
   .prop('power', S.boolean().required())
   .prop('name', S.string().required())
   .prop('type', S.string().required())
-  .prop('brightness', S.string())
-  .prop('colorTemp', S.string())
+  .prop('brightness', S.number())
+  .prop('provider', S.string())
+  .prop('available', S.boolean())
+  .prop('colorTemp', S.number())
 
 export const getLightStatus = {
   tags: ['lights'],

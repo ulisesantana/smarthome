@@ -4,39 +4,131 @@ import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
 import { AppBootstrap } from '../../src/app.bootstrap'
 import { buildLight } from '../../src/common/test'
+import { LifxRepository } from '../../src/provider/domain/lifx'
+import { Provider } from '../../src/provider'
 
 const appBootstrap = container.resolve(AppBootstrap)
 appBootstrap.exec = async () => {}
 container.registerInstance(AppBootstrap, appBootstrap)
 
-describe('/light', () => {
-  describe('GET should', () => {
-    it('retrieve all lights in database', async () => {
-      const server = await buildServer()
-      await setLightCollection([
-        buildLight(),
-        buildLight(),
-        buildLight(),
-        buildLight()
-      ])
+describe('light endpoints', () => {
+  describe('/light', () => {
+    describe('GET should', () => {
+      it('retrieve all lights in database', async () => {
+        const server = await buildServer()
+        await setLightCollection([
+          buildLight(),
+          buildLight(),
+          buildLight(),
+          buildLight()
+        ])
 
-      const response = await server.inject({
-        url: '/light',
-        method: 'GET'
+        const response = await server.inject({
+          url: '/light',
+          method: 'GET'
+        })
+        await server.close()
+
+        const lights = response.json()
+        expect(response.statusCode).toBe(200)
+        expect(lights).toHaveLength(4)
       })
+      it('retrieve an empty array if there is no lights in database', async () => {
+        const server = await buildServer()
+        await setLightCollection([])
 
-      const lights = response.json()
-      expect(response.statusCode).toBe(200)
-      expect(lights).toHaveLength(4)
-      await server.close()
+        const response = await server.inject({
+          url: '/light',
+          method: 'GET'
+        })
+        await server.close()
+
+        const lights = response.json()
+        expect(response.statusCode).toBe(200)
+        expect(lights).toHaveLength(0)
+      })
+    })
+  })
+
+  describe('/light/:id', () => {
+    describe('PATCH should', () => {
+      it('update the light status', async () => {
+        const lifxRepository = container.resolve(LifxRepository)
+        lifxRepository.setState = jest.fn()
+        container.registerInstance(LifxRepository, lifxRepository)
+        const server = await buildServer()
+        const light = buildLight()
+        await setLightCollection([light])
+        const update = { brightness: 25, colorTemp: 5000 }
+
+        const response = await server.inject({
+          url: `light/${light.id}`,
+          method: 'patch',
+          payload: update
+        })
+        await server.close()
+
+        const updatedLight = response.json()
+        expect(response.statusCode).toBe(200)
+        expect(updatedLight).toStrictEqual({ ...light, ...update })
+      })
+      it('return 404 if the light is not in database', async () => {
+        const server = await buildServer()
+        const light = buildLight()
+        await setLightCollection([])
+        const update = { brightness: 25, colorTemp: 5000 }
+
+        const response = await server.inject({
+          url: `light/${light.id}`,
+          method: 'patch',
+          payload: update
+        })
+        await server.close()
+
+        expect(response.statusCode).toBe(404)
+      })
+    })
+  })
+
+  describe('/light/:id/toggle', () => {
+    describe('PATCH should', () => {
+      it('toggle the light power', async () => {
+        const lifxRepository = container.resolve(LifxRepository)
+        lifxRepository.setState = jest.fn()
+        container.registerInstance(LifxRepository, lifxRepository)
+        const server = await buildServer()
+        const light = buildLight({ provider: Provider.TpLink })
+        await setLightCollection([light])
+
+        const response = await server.inject({
+          url: `light/${light.id}/toggle`,
+          method: 'patch'
+        })
+        await server.close()
+
+        const updatedLight = response.json()
+        expect(response.statusCode).toBe(200)
+        expect(updatedLight).toStrictEqual({ ...light, power: !light.power })
+      })
+      it('return 404 if the light is not in database', async () => {
+        const server = await buildServer()
+        const light = buildLight()
+        await setLightCollection([])
+
+        const response = await server.inject({
+          url: `light/${light.id}/toggle`,
+          method: 'patch'
+        })
+        await server.close()
+
+        expect(response.statusCode).toBe(404)
+      })
     })
   })
 })
 
 async function setLightCollection (lights: Light[]): Promise<void> {
-  await container.resolve(MongoDB)
-    .useCollection(LightRepository.collection)
-    .removeCollection()
+  await container.resolve(MongoDB).useCollection(LightRepository.collection).removeCollection()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
   for await (const _light of generateLights(lights)) {}
 }

@@ -25,12 +25,12 @@ export class LightService {
   async setLightStateById (id: string, config: Partial<Light>): Promise<Light> {
     const light = await this.repository.findById(id)
     const updatedLight = { ...light, ...config }
-    return await this.setLightStateBasedOnProvider(updatedLight)
+    return this.setLightStateBasedOnProvider(updatedLight)
   }
 
   async toggleLightById (id: string): Promise<Light> {
     const light = await this.repository.findById(id)
-    return await this.setLightStateBasedOnProvider({ ...light, power: !light.power })
+    return this.setLightStateBasedOnProvider({ ...light, power: !light.power })
   }
 
   private async setLightStateBasedOnProvider (light: Light): Promise<Light> {
