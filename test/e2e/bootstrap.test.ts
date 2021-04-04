@@ -26,7 +26,7 @@ describe('Smarthome API Bootstrap should', () => {
       lifxRepository.getAllLights = jest.fn(async () => lifxLights)
     }
   })
-  it('persist new lights from providers', async () => {
+  it('persist lights from providers', async () => {
     const lifxLights = [
       buildLight({ provider: Provider.Lifx }),
       buildLight({ provider: Provider.Lifx })

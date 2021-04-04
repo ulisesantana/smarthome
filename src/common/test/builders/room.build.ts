@@ -1,5 +1,6 @@
 import { Room, RoomEntity } from '../../../room'
 import { buildLight } from './light.build'
+import { generateId } from '../../domain'
 
 export function buildRoomEntity (room: Partial<RoomEntity> = {}): RoomEntity {
   return {
@@ -16,7 +17,7 @@ export function buildRoom (room: Partial<Room> = {}): Room {
     color: room.color ?? 'dodgerblue',
     lights: room.lights ?? [buildLight({ id: 'irrelevantDevice1' }), buildLight({ id: 'irrelevantDevice2' })],
     icon: room.icon ?? 'bedtime',
-    id: room.id ?? 'irrelevantRoomId',
+    id: room.id ?? generateId(),
     name: room.name ?? 'Bedroom'
   }
 }

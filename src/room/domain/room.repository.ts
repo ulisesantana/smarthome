@@ -14,7 +14,7 @@ export class RoomRepository {
 
     async findAll (): Promise<Room[]> {
       try {
-        return await this.mongodb.aggregate<Room[]>([{
+        return await this.mongodb.aggregate<Room>([{
           $lookup: {
             from: 'lights',
             localField: 'lights',
@@ -29,7 +29,7 @@ export class RoomRepository {
 
     async findById (id: string): Promise<Room> {
       try {
-        return await this.mongodb.aggregate<Room>([
+        const [room] = await this.mongodb.aggregate<Room>([
           { $match: { id } },
           {
             $lookup: {
@@ -39,6 +39,7 @@ export class RoomRepository {
               as: 'lights'
             }
           }])
+        return room
       } catch (error) {
         throw new RoomError(error)
       }
@@ -52,9 +53,9 @@ export class RoomRepository {
       }
     }
 
-    async update (room: Partial<RoomEntity>): Promise<void> {
+    async update (room: Partial<RoomEntity>): Promise<RoomEntity> {
       try {
-        await this.mongodb.upsertOne<RoomEntity>({ id: room.id }, room)
+        return this.mongodb.upsertOne<RoomEntity>({ id: room.id }, room)
       } catch (error) {
         throw new RoomError(error)
       }

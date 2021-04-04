@@ -1,6 +1,9 @@
 import S from 'fluent-json-schema'
 import { LightService } from '..'
-import { generateInternalServerErrorSchema } from '../../common'
+import {
+  generateInternalServerErrorSchema,
+  generateNotFoundErrorSchema
+} from '../../common'
 
 export const lightStatus = S.object()
   .title('Light Status')
@@ -32,6 +35,7 @@ export const toggleLightById = {
     200: S.object()
       .description('Successful response')
       .extend(lightStatus),
+    404: generateNotFoundErrorSchema('Light not found'),
     500: generateInternalServerErrorSchema('Error toggling light.')
   }
 }
@@ -48,6 +52,7 @@ export const updateLightStatusById = {
     200: S.object()
       .description('Successful response')
       .extend(lightStatus),
+    404: generateNotFoundErrorSchema('Light not found'),
     500: generateInternalServerErrorSchema('Error updating light.')
   }
 }

@@ -66,7 +66,11 @@ export function roomRoutes (server: FastifyInstance): void {
     async function ({ params: { id }, body }, reply) {
       try {
         const updatedRoom = await roomController.updateRoom(id, body)
-        reply.send(updatedRoom)
+        if (updatedRoom?.id !== undefined) {
+          reply.send(updatedRoom)
+        } else {
+          reply.send(new NotFound(`Room with id ${id} not found.`))
+        }
       } catch (err) {
         console.error(err.toString())
         reply.send(new InternalServerError('Error updating room.'))
@@ -79,8 +83,12 @@ export function roomRoutes (server: FastifyInstance): void {
     { schema: deleteRoomById },
     async function ({ params: { id } }, reply) {
       try {
-        await roomController.removeRoom(id)
-        reply.status(204)
+        const isRoomRemoved = await roomController.removeRoom(id)
+        if (isRoomRemoved) {
+          reply.status(204)
+        } else {
+          reply.send(new NotFound(`Room with id ${id} not found.`))
+        }
       } catch (err) {
         console.error(err.toString())
         reply.send(new InternalServerError('Error deleting room.'))
@@ -94,7 +102,11 @@ export function roomRoutes (server: FastifyInstance): void {
     async function ({ params: { id } }, reply) {
       try {
         const updatedRoom = await roomController.toggleRoomById(id)
-        reply.send(updatedRoom)
+        if (updatedRoom?.id !== undefined) {
+          reply.send(updatedRoom)
+        } else {
+          reply.send(new NotFound(`Room with id ${id} not found.`))
+        }
       } catch (err) {
         console.error(err.toString())
         reply.send(new InternalServerError('Error toggling room.'))

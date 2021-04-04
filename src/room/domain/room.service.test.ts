@@ -3,11 +3,12 @@ import { buildRoomEntity, buildRoom, buildLight } from '../../common/test'
 import { RoomRepository } from './room.repository'
 import { LightService } from '../../light'
 import { container } from 'tsyringe'
-import { Room } from './room.model'
+import { Room, RoomEntity } from './room.model'
 
 type MockRepositoriesParams = Partial<{
     findById: Room,
     findAll: Room[],
+    update: RoomEntity
 }>
 
 describe('Room service should', () => {
@@ -21,14 +22,14 @@ describe('Room service should', () => {
     lightService = container.resolve(LightService)
     lightService.toggleLightById = jest.fn()
     roomRepository.create = jest.fn()
-    roomRepository.update = jest.fn()
     roomRepository.remove = jest.fn()
 
     mockRepository = ({
-      findById, findAll
+      findById, findAll, update
     }: MockRepositoriesParams) => {
       roomRepository.findById = jest.fn(async () => findById || {} as Room)
       roomRepository.findAll = jest.fn(async () => findAll || [] as Room[])
+      roomRepository.update = jest.fn(async () => update || {} as RoomEntity)
     }
   })
   describe('create a new room', () => {
@@ -88,8 +89,11 @@ describe('Room service should', () => {
     const mockedRoom = buildRoom()
     const updates = { name: 'Kitchen', color: 'blue' }
     const updatedRoom = { ...mockedRoom, ...updates }
-    roomRepository.update = jest.fn()
-    mockRepository({ findById: updatedRoom })
+    lightService.getLightsById = async () => mockedRoom.lights
+    mockRepository({
+      findById: mockedRoom,
+      update: { ...updatedRoom, lights: updatedRoom.lights.map(({ id }) => id) }
+    })
 
     const room = await new RoomService(lightService, roomRepository).update(mockedRoom.id, updates)
 
@@ -100,6 +104,7 @@ describe('Room service should', () => {
 
   it('remove room', async () => {
     const mockedRoom = buildRoom()
+    mockRepository({ findById: mockedRoom })
 
     await new RoomService(lightService, roomRepository).remove(mockedRoom.id)
 

@@ -35,22 +35,34 @@ export class RoomService {
     return this.repository.findAll()
   }
 
-  async update (id: string, room: Partial<RoomRequest>): Promise<Room> {
-    await this.repository.update({ ...room, id })
-    return this.getById(id)
+  async update (id: string, update: Partial<RoomRequest>): Promise<Room> {
+    const room = await this.getById(id)
+    if (room?.id !== undefined) {
+      const updatedRoomWihtoutLights = await this.repository.update({ id, ...update })
+      const lights = await this.lightService.getLightsById(updatedRoomWihtoutLights.lights)
+      return { ...updatedRoomWihtoutLights, lights }
+    }
+    return room
   }
 
-  async remove (id: string): Promise<void> {
-    await this.repository.remove(id)
+  async remove (id: string): Promise<boolean> {
+    const room = await this.getById(id)
+    if (room?.id !== undefined) {
+      await this.repository.remove(id)
+      return true
+    }
+    return false
   }
 
   async toggleLightsByRoomId (id: string): Promise<Room> {
     const room = await this.getById(id)
     const updatedLights = []
-    for await (const light of this.toggleLights(room.lights)) {
-      updatedLights.push(light)
+    if (room?.id !== undefined) {
+      for await (const light of this.toggleLights(room.lights)) {
+        updatedLights.push(light)
+      }
+      room.lights = updatedLights
     }
-    room.lights = updatedLights
     return room
   }
 

@@ -7,11 +7,11 @@ import {
 
 export const roomStatus = S.object()
   .title('Room Status')
-  .prop('id', S.string().required())
-  .prop('name', S.string().required())
-  .prop('icon', S.string().required())
-  .prop('color', S.string().required())
-  .prop('lights', S.array().items(lightStatus).required())
+  .prop('id', S.string())
+  .prop('name', S.string())
+  .prop('icon', S.string())
+  .prop('color', S.string())
+  .prop('lights', S.array().items(lightStatus))
 
 export const getRoomStatus = {
   tags: ['rooms'],
@@ -68,6 +68,7 @@ export const updateRoom = {
     200: S.object()
       .description('Successful response')
       .extend(roomStatus),
+    404: generateNotFoundErrorSchema('Room not found'),
     500: generateInternalServerErrorSchema('Error deleting room.')
   }
 }
@@ -79,6 +80,7 @@ export const deleteRoomById = {
   response: {
     204: S.object()
       .description('Successful response'),
+    404: generateNotFoundErrorSchema('Room not found'),
     500: generateInternalServerErrorSchema('Error deleting room.')
   }
 }
@@ -91,6 +93,7 @@ export const toggleLightsStatusById = {
     200: S.object()
       .description('Successful response')
       .extend(roomStatus),
+    404: generateNotFoundErrorSchema('Room not found'),
     500: generateInternalServerErrorSchema('Error toggling room.')
   }
 }

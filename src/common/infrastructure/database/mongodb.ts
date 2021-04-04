@@ -12,7 +12,7 @@ export interface MongoAPI {
     upsertOne: <T> (filter: FilterQuery<T>, entity: Partial<T>) => Promise<T>
     findOne: <T> (filter: FilterQuery<T>) => Promise<T>
     find: <T> (filter: FilterQuery<T>) => Promise<T[]>
-    aggregate: <T> (pipeline: object[]) => Promise<T>
+    aggregate: <T> (pipeline: object[]) => Promise<T[]>
     remove: <T> (filter: FilterQuery<T>) => Promise<void>
     removeCollection: () => Promise<void>
 }
@@ -56,7 +56,7 @@ export class MongoDB {
         }
       },
 
-      aggregate: async <T> (pipeline: object[]): Promise<T> => {
+      aggregate: async <T> (pipeline: object[]): Promise<T[]> => {
         const result = await this.on(() => this.getCollection(collectionName).aggregate(pipeline).toArray())
         if (result.ok) {
           return result.data || [] as T[]

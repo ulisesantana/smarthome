@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe'
 export class RoomController {
   constructor (@inject(RoomService) private readonly roomService: RoomService) {}
 
-  async getRoomById (id: string): Promise<Room> {
+  getRoomById (id: string): Promise<Room> {
     return this.roomService.getById(id)
   }
 
@@ -13,7 +13,7 @@ export class RoomController {
     return this.roomService.getAll()
   }
 
-  async createRoom (room: Partial<RoomEntity>): Promise<Room> {
+  createRoom (room: Partial<RoomEntity>): Promise<Room> {
     return this.roomService.create(room)
   }
 
@@ -21,11 +21,11 @@ export class RoomController {
     return this.roomService.update(id, room)
   }
 
-  async removeRoom (id: string): Promise<void> {
-    await this.roomService.remove(id)
+  removeRoom (id: string): Promise<boolean> {
+    return this.roomService.remove(id)
   }
 
-  async toggleRoomById (id: string): Promise<void> {
-    await this.roomService.toggleLightsByRoomId(id)
+  toggleRoomById (id: string): Promise<Room> {
+    return this.roomService.toggleLightsByRoomId(id)
   }
 }
