@@ -21,7 +21,7 @@ export abstract class ProviderService {
 
     return [
       ...providerLights,
-      ...providerMissingLights
+      ...providerMissingLights.map(light => (({ ...light, available: false })))
     ]
   }
 
