@@ -5,7 +5,7 @@ const docsRoute = process.env.DOCS_ROUTE ?? '/docs'
 const docsHost = `0.0.0.0:${PORT}`
 
 buildServer({ docsHost, docsRoute }).then(server => {
-  server.listen(8080, '0.0.0.0', (err, address) => {
+  server.listen(PORT, '0.0.0.0', (err, address) => {
     if (err) {
       console.error(err)
       process.exit(1)
