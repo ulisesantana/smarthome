@@ -10,6 +10,7 @@
     "dev": "npm run build && NODE_ENV=development node --trace-warnings bin/runServer.js",
     "dev:watch": "npm run build -- --watch & NODE_ENV=development nodemon bin/runServer.js",
     "docker:generate": "docker build -t $(node -pe \"require('./package.json').name.concat(':').concat(require('./package.json').version)\") .",
+    "docs:generate-uml": "npx tplant --input src/**/*.ts --output docs/Smarthome.svg",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "tag": "TAG=v$(node -pe \"require('./package.json').version\"); git commit -am \"🔖 $TAG\" && git tag $TAG && git push && git push --tags",
