@@ -3,7 +3,6 @@
   "version": "2.3.1",
   "main": "bin/runServer.js",
   "scripts": {
-    "prestart": "npm run build",
     "start": "node NODE_ENV=production bin/runServer.js",
     "build": "npm run lint && tsc",
     "database:up": "mkdir -p test/db/mongo/database && docker-compose -f test/db/mongo/docker-compose.yml up -d",
