@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
-import { Light, LightType } from '../../../light'
-import { Environment, http } from '../../../common'
-import { Provider, ProviderRepository } from '../provider.service'
+import { Light, LightType } from '../../light'
+import { Environment, http } from '../../common'
+import { Brand } from '../domain/brand.service'
 import { inject, injectable } from 'tsyringe'
+import { BrandRepository } from '../domain/brand.repository'
 
 export interface LifxLight {
   id: string
@@ -46,7 +47,7 @@ interface StateOptions {
 }
 
 @injectable()
-export class LifxRepository implements ProviderRepository {
+export class BrandLifxRepository implements BrandRepository {
   private readonly url = 'https://api.lifx.com/v1/lights'
   private readonly token: string
 
@@ -67,11 +68,11 @@ export class LifxRepository implements ProviderRepository {
       }
     })
     const lights = response.toJSON().body
-    return lights.map(LifxRepository.mapToDomain)
+    return lights.map(BrandLifxRepository.mapToDomain)
   }
 
   async setState (device: Light): Promise<void> {
-    const options = LifxRepository.mapToProvider(device)
+    const options = BrandLifxRepository.mapToProvider(device)
     const body: StateOptions = {
       fast: true
     }
@@ -123,7 +124,7 @@ export class LifxRepository implements ProviderRepository {
       colorTemp: device.color.kelvin,
       power: device.power === 'on',
       available: true,
-      provider: Provider.Lifx
+      provider: Brand.Lifx
     })
   }
 }

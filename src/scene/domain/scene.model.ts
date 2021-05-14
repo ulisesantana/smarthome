@@ -1,4 +1,4 @@
-import { LightGroup } from '../../common/domain/lightGroup/lightGroup.model'
+import { LightGroup } from '../../lightGroup/domain/lightGroup.model'
 
 export interface Scene extends LightGroup{
     brightness: number

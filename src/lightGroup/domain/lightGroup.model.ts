@@ -1,4 +1,4 @@
-import { Light } from '../../../light'
+import { Light } from '../../light'
 
 export interface LightGroup {
     id: string

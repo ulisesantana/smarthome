@@ -1,15 +1,16 @@
 import { Scene, SceneEntity, SceneRequest } from './scene.model'
-import { SceneRepository } from './scene.repository'
+import { SceneRepository } from '../infrastructure/scene.repository'
 import { generateId } from '../../common'
 import { Light, LightService } from '../../light'
 import { inject, injectable } from 'tsyringe'
-import { LightGroupService } from '../../common/domain/lightGroup/lightGroup.service'
+import { LightGroupService } from '../../lightGroup/domain/lightGroup.service'
+import { LightGroupRepository } from '../../lightGroup/domain/lightGroup.repository'
 
 @injectable()
 export class SceneService extends LightGroupService<Scene, SceneEntity> {
   constructor (
         @inject(LightService) lightService: LightService,
-        @inject(SceneRepository) repository: SceneRepository
+        @inject(SceneRepository) repository: LightGroupRepository<Scene, SceneEntity>
   ) {
     super(lightService, repository)
   }

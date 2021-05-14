@@ -1,49 +1,50 @@
 import { buildLight } from '../../common/test'
 import { LightService } from './light.service'
 import { Light } from './light.model'
-import { LifxRepository, LifxService, Provider, TplinkRepository, TplinkService } from '../../provider'
+import { BrandLifxRepository, BrandLifxService, Brand, BrandTplinkRepository, BrandTplinkService } from '../../brand'
 import { LightRepository } from './light.repository'
 import { container } from 'tsyringe'
+import { LightMongoRepository } from '../infrastructure/light.mongo.repository'
 
 type MockRepositoriesParams = Partial<{
-    findById: Light,
-    findAll: Light[],
+    getById: Light,
+    getAll: Light[],
 }>
 
 describe('Light service should', () => {
   let lightRepositoryMock: LightRepository
-  let tplinkRepositoryMock: TplinkRepository
-  let lifxRepositoryMock: LifxRepository
-  let tplinkServiceMock: TplinkService
-  let lifxServiceMock: LifxService
+  let tplinkRepositoryMock: BrandTplinkRepository
+  let lifxRepositoryMock: BrandLifxRepository
+  let tplinkServiceMock: BrandTplinkService
+  let lifxServiceMock: BrandLifxService
   let mockRepositories: Function
 
   beforeEach(() => {
     container.clearInstances()
-    lightRepositoryMock = container.resolve(LightRepository)
-    tplinkRepositoryMock = container.resolve(TplinkRepository)
-    lifxRepositoryMock = container.resolve(LifxRepository)
-    tplinkServiceMock = new TplinkService(tplinkRepositoryMock)
+    lightRepositoryMock = container.resolve(LightMongoRepository)
+    tplinkRepositoryMock = container.resolve(BrandTplinkRepository)
+    lifxRepositoryMock = container.resolve(BrandLifxRepository)
+    tplinkServiceMock = new BrandTplinkService(tplinkRepositoryMock)
     tplinkServiceMock.setLightState = jest.fn()
-    container.registerInstance(TplinkService, tplinkServiceMock)
+    container.registerInstance(BrandTplinkService, tplinkServiceMock)
 
-    lifxServiceMock = new LifxService(lifxRepositoryMock)
+    lifxServiceMock = new BrandLifxService(lifxRepositoryMock)
     lifxServiceMock.setLightState = jest.fn()
-    container.registerInstance(LifxService, lifxServiceMock)
+    container.registerInstance(BrandLifxService, lifxServiceMock)
 
     mockRepositories = ({
-      findById, findAll
+      getById, getAll
     }: MockRepositoriesParams) => {
-      lightRepositoryMock.findById = jest.fn(async () => findById || {} as Light)
-      lightRepositoryMock.findAll = jest.fn(async () => findAll || [] as Light[])
-      lightRepositoryMock.upsert = jest.fn()
+      lightRepositoryMock.getById = jest.fn(async () => getById || {} as Light)
+      lightRepositoryMock.getAll = jest.fn(async () => getAll || [] as Light[])
+      lightRepositoryMock.update = jest.fn()
       tplinkRepositoryMock.setState = jest.fn()
       lifxRepositoryMock.setState = jest.fn()
     }
   })
   it('get all devices from database', async () => {
     const mockedLights = Array(2).map(() => buildLight())
-    mockRepositories({ findAll: mockedLights })
+    mockRepositories({ getAll: mockedLights })
 
     const lights = await new LightService(
       lightRepositoryMock,
@@ -55,8 +56,8 @@ describe('Light service should', () => {
   })
 
   it('toggle TP-Link device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Provider.TpLink, power: true })
-    mockRepositories({ findById: light })
+    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.TpLink, power: true })
+    mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
       lightRepositoryMock,
@@ -74,12 +75,12 @@ describe('Light service should', () => {
     expect(updatedLight.type).toBe(light.type)
     expect(tplinkServiceMock.setLightState).toHaveBeenCalledWith({ ...light, power: false })
     expect(lifxServiceMock.setLightState).not.toHaveBeenCalled()
-    expect(lightRepositoryMock.findById).toHaveBeenCalled()
+    expect(lightRepositoryMock.getById).toHaveBeenCalled()
   })
 
   it('toggle Lifx device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Provider.Lifx, power: true })
-    mockRepositories({ findById: light })
+    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.Lifx, power: true })
+    mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
       lightRepositoryMock,
@@ -97,13 +98,13 @@ describe('Light service should', () => {
     expect(updatedLight.type).toBe(light.type)
     expect(lifxServiceMock.setLightState).toHaveBeenCalledWith({ ...light, power: false })
     expect(tplinkServiceMock.setLightState).not.toHaveBeenCalled()
-    expect(lightRepositoryMock.findById).toHaveBeenCalled()
+    expect(lightRepositoryMock.getById).toHaveBeenCalled()
   })
 
   it('change light state in TP-Link device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Provider.TpLink })
+    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.TpLink })
     const config = { power: false, brightness: 50 }
-    mockRepositories({ findById: light })
+    mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
       lightRepositoryMock,
@@ -121,13 +122,13 @@ describe('Light service should', () => {
     expect(updatedLight.type).toBe(light.type)
     expect(tplinkServiceMock.setLightState).toHaveBeenCalledWith({ ...light, ...config })
     expect(lifxServiceMock.setLightState).not.toHaveBeenCalled()
-    expect(lightRepositoryMock.findById).toHaveBeenCalled()
+    expect(lightRepositoryMock.getById).toHaveBeenCalled()
   })
 
   it('change light state in Lifx device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Provider.Lifx })
+    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.Lifx })
     const config = { power: false, brightness: 50 }
-    mockRepositories({ findById: light })
+    mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
       lightRepositoryMock,
@@ -145,6 +146,6 @@ describe('Light service should', () => {
     expect(updatedLight.type).toBe(light.type)
     expect(lifxServiceMock.setLightState).toHaveBeenCalledWith({ ...light, ...config })
     expect(tplinkServiceMock.setLightState).not.toHaveBeenCalled()
-    expect(lightRepositoryMock.findById).toHaveBeenCalled()
+    expect(lightRepositoryMock.getById).toHaveBeenCalled()
   })
 })

@@ -1,25 +1,25 @@
-import { Light, LightRepository } from './light'
-import { LifxService, Provider, TplinkService } from './provider'
+import { Light, LightMongoRepository, LightRepository } from './light'
+import { BrandLifxService, Brand, BrandTplinkService } from './brand'
 import { inject, injectable } from 'tsyringe'
 
 @injectable()
 export class AppBootstrap {
   constructor (
-      @inject(LightRepository) private readonly lightRepository: LightRepository,
-      @inject(TplinkService) private readonly tplinkService: TplinkService,
-      @inject(LifxService) private readonly lifxService: LifxService
+      @inject(LightMongoRepository) private readonly lightRepository: LightRepository,
+      @inject(BrandTplinkService) private readonly tplinkService: BrandTplinkService,
+      @inject(BrandLifxService) private readonly lifxService: BrandLifxService
   ) {}
 
   async exec (): Promise<void> {
     const start = Date.now()
     console.info('Loading lights from Lifx provider.')
     const lifxLightsToUpdate = await this.lifxService.init(
-      await this.lightRepository.findAllByProvider(Provider.Lifx)
+      await this.lightRepository.getAllByProvider(Brand.Lifx)
     )
 
     console.info('Loading lights from TP-Link provider.')
     const tplinkLightsToUpdate = await this.tplinkService.init(
-      await this.lightRepository.findAllByProvider(Provider.TpLink)
+      await this.lightRepository.getAllByProvider(Brand.TpLink)
     )
 
     console.info('Checking lights against database.')
@@ -38,7 +38,7 @@ export class AppBootstrap {
 
   private async * updateLights (lights: Light[]): AsyncGenerator<Light> {
     for (const light of lights) {
-      const updatedLight = await this.lightRepository.upsert(light)
+      const updatedLight = await this.lightRepository.update(light)
       yield updatedLight
     }
   }

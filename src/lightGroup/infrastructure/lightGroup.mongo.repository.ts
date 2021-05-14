@@ -1,16 +1,17 @@
-import { MongoAPI } from '../../index'
-import { LightGroup, LightGroupEntity } from './lightGroup.model'
+import { MongoAPI } from '../../common'
+import { LightGroup, LightGroupEntity } from '../domain/lightGroup.model'
 import { FilterQuery } from 'mongodb'
+import { LightGroupRepository } from '../domain/lightGroup.repository'
 
 type Constructor<T> = new(...args: any[]) => T
 
-export abstract class LightGroupRepository<Model extends LightGroup, Entity extends LightGroupEntity> {
+export abstract class LightGroupMongoRepository<Model extends LightGroup, Entity extends LightGroupEntity> implements LightGroupRepository<Model, Entity> {
   protected constructor (
       private readonly mongodb: MongoAPI,
       private readonly ModelError: Constructor<Error>
   ) {}
 
-  async findAll (): Promise<Model[]> {
+  async getAll (): Promise<Model[]> {
     try {
       return await this.mongodb.aggregate<Model>([{
         $lookup: {
@@ -25,7 +26,7 @@ export abstract class LightGroupRepository<Model extends LightGroup, Entity exte
     }
   }
 
-  async findById (id: string): Promise<Model> {
+  async getById (id: string): Promise<Model> {
     try {
       const [model] = await this.mongodb.aggregate<Model>([
         { $match: { id } },

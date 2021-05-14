@@ -1,4 +1,4 @@
-import { Provider } from '../../provider'
+import { Brand } from '../../brand'
 
 export enum LightType {
     Bulb = 'bulb',
@@ -13,5 +13,5 @@ export interface Light {
     colorTemp: number
     power: boolean
     available: boolean
-    provider: Provider
+    provider: Brand
 }

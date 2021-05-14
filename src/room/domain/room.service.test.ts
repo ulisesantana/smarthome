@@ -1,13 +1,13 @@
 import { RoomService } from './room.service'
 import { buildRoomEntity, buildRoom, buildLight } from '../../common/test'
-import { RoomRepository } from './room.repository'
+import { RoomRepository } from '../infrastructure/room.repository'
 import { LightService } from '../../light'
 import { container } from 'tsyringe'
-import { Room, RoomEntity } from './room.model'
+import { Room, RoomEntity, RoomRequest } from './room.model'
 
 type MockRepositoriesParams = Partial<{
-    findById: Room,
-    findAll: Room[],
+    getById: Room,
+    getAll: Room[],
     update: RoomEntity
 }>
 
@@ -25,10 +25,10 @@ describe('Room service should', () => {
     roomRepository.remove = jest.fn()
 
     mockRepository = ({
-      findById, findAll, update
+      getById, getAll, update
     }: MockRepositoriesParams) => {
-      roomRepository.findById = jest.fn(async () => findById || {} as Room)
-      roomRepository.findAll = jest.fn(async () => findAll || [] as Room[])
+      roomRepository.getById = jest.fn(async () => getById || {} as Room)
+      roomRepository.getAll = jest.fn(async () => getAll || [] as Room[])
       roomRepository.update = jest.fn(async () => update || {} as RoomEntity)
     }
   })
@@ -50,7 +50,7 @@ describe('Room service should', () => {
 
     it('filled with default values if no values are given', async () => {
       lightService.getLightsById = jest.fn(async () => [])
-      const defaultRoomValues = {
+      const defaultRoomValues: RoomRequest = {
         color: '#708090',
         lights: [],
         icon: 'self_improvement',
@@ -68,7 +68,7 @@ describe('Room service should', () => {
 
   it('retrieve all rooms in database', async () => {
     const mockedRooms = [buildRoom(), buildRoom(), buildRoom()]
-    mockRepository({ findAll: mockedRooms })
+    mockRepository({ getAll: mockedRooms })
 
     const roomsInDb = await new RoomService(lightService, roomRepository).getAll()
 
@@ -77,12 +77,12 @@ describe('Room service should', () => {
 
   it('retrieve room by id', async () => {
     const mockedRoom = buildRoom()
-    mockRepository({ findById: mockedRoom })
+    mockRepository({ getById: mockedRoom })
 
     const room = await new RoomService(lightService, roomRepository).getById(mockedRoom.id)
 
     expect(room).toStrictEqual(mockedRoom)
-    expect(roomRepository.findById).toBeCalledWith(mockedRoom.id)
+    expect(roomRepository.getById).toBeCalledWith(mockedRoom.id)
   })
 
   it('update a room and return it', async () => {
@@ -91,20 +91,20 @@ describe('Room service should', () => {
     const updatedRoom = { ...mockedRoom, ...updates }
     lightService.getLightsById = async () => mockedRoom.lights
     mockRepository({
-      findById: mockedRoom,
+      getById: mockedRoom,
       update: { ...updatedRoom, lights: updatedRoom.lights.map(({ id }) => id) }
     })
 
     const room = await new RoomService(lightService, roomRepository).update(mockedRoom.id, updates)
 
     expect(room).toStrictEqual(updatedRoom)
-    expect(roomRepository.findById).toBeCalledWith(mockedRoom.id)
+    expect(roomRepository.getById).toBeCalledWith(mockedRoom.id)
     expect(roomRepository.update).toBeCalledWith({ id: mockedRoom.id, ...updates })
   })
 
   it('remove room', async () => {
     const mockedRoom = buildRoom()
-    mockRepository({ findById: mockedRoom })
+    mockRepository({ getById: mockedRoom })
 
     await new RoomService(lightService, roomRepository).remove(mockedRoom.id)
 
@@ -127,7 +127,7 @@ describe('Room service should', () => {
           power: false
         }))
       }
-      mockRepository({ findById: { ...mockedRoom } })
+      mockRepository({ getById: { ...mockedRoom } })
 
       const room = await new RoomService(lightService, roomRepository).toggleLightsByRoomId(mockedRoom.id)
 
@@ -149,7 +149,7 @@ describe('Room service should', () => {
           power: true
         }))
       }
-      mockRepository({ findById: { ...mockedRoom } })
+      mockRepository({ getById: { ...mockedRoom } })
 
       const room = await new RoomService(lightService, roomRepository).toggleLightsByRoomId(mockedRoom.id)
 

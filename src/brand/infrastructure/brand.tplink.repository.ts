@@ -1,7 +1,8 @@
-import { http, generateId, Environment, MongoDB, MongoAPI } from '../../../common'
-import { Light, LightType } from '../../../light'
-import { Provider, ProviderRepository } from '../provider.service'
+import { http, generateId, Environment, MongoDB, MongoAPI } from '../../common'
+import { Light, LightType } from '../../light'
+import { Brand } from '../domain/brand.service'
 import { inject, injectable } from 'tsyringe'
+import { BrandRepository } from '../domain/brand.repository'
 
 interface TpLinkDevice {
     deviceType: string
@@ -35,7 +36,7 @@ interface LightState {
  * https://www.npmjs.com/package/tplink-cloud-api
  */
 @injectable()
-export class TplinkRepository implements ProviderRepository {
+export class BrandTplinkRepository implements BrandRepository {
     private static collection = 'tplinkDevices'
     private readonly mongodb: MongoAPI
     private readonly url = 'https://wap.tplinkcloud.com'
@@ -57,7 +58,7 @@ export class TplinkRepository implements ProviderRepository {
       const { tplinkUser, tplinkPassword } = this.environment.getVariables()
       this.user = tplinkUser
       this.password = tplinkPassword
-      this.mongodb = instance.useCollection(TplinkRepository.collection)
+      this.mongodb = instance.useCollection(BrandTplinkRepository.collection)
       if (this.environment.isProduction()) {
         if (!this.user) {
           console.error('Missing required user parameter for TPLink')
@@ -72,7 +73,7 @@ export class TplinkRepository implements ProviderRepository {
 
     async getAllLights (): Promise<Light[]> {
       await this.refreshTokenIfIsExpired()
-      const url = TplinkRepository.generateUrlWithQueryString(this.url, {
+      const url = BrandTplinkRepository.generateUrlWithQueryString(this.url, {
         appName: 'Kasa_Android',
         termID: this.termID,
         appVer: '1.4.4.607',
@@ -84,7 +85,7 @@ export class TplinkRepository implements ProviderRepository {
       const request = {
         method: 'POST',
         url: 'https://wap.tplinkcloud.com',
-        headers: TplinkRepository.headers,
+        headers: BrandTplinkRepository.headers,
         body: { method: 'getDeviceList' }
       }
 
@@ -96,7 +97,7 @@ export class TplinkRepository implements ProviderRepository {
     async setState (device: Light): Promise<void> {
       const rawDevice = await this.getTpLinkDevice(device.id)
       if (rawDevice?.deviceId !== undefined) {
-        if (TplinkRepository.isABulb(rawDevice)) {
+        if (BrandTplinkRepository.isABulb(rawDevice)) {
           await this.setBulbState(rawDevice, device)
         } else {
           await this.setPlugState(rawDevice, device.power)
@@ -137,7 +138,7 @@ export class TplinkRepository implements ProviderRepository {
         throw new Error(`TPLink device with id ${id} doesn't exist.`)
       } else {
         const deviceInfo = await this.passthroughRequest(device, { system: { get_sysinfo: {} } })
-        return TplinkRepository.mapToDevice(device, {
+        return BrandTplinkRepository.mapToDevice(device, {
           power: deviceInfo?.system?.get_sysinfo?.relay_state ?? deviceInfo?.system?.get_sysinfo?.light_state?.on_off,
           brightness: deviceInfo?.system?.get_sysinfo?.light_state?.dft_on_state?.brightness ?? 0,
           colorTemp: deviceInfo?.system?.get_sysinfo?.light_state?.dft_on_state?.color_temp ?? 0
@@ -169,7 +170,7 @@ export class TplinkRepository implements ProviderRepository {
 
     private async login (): Promise<void> {
       const termID: string = generateId()
-      const url = TplinkRepository.generateUrlWithQueryString(this.url, {
+      const url = BrandTplinkRepository.generateUrlWithQueryString(this.url, {
         appName: 'Kasa_Android',
         termID,
         appVer: '1.4.4.607',
@@ -188,7 +189,7 @@ export class TplinkRepository implements ProviderRepository {
             terminalUUID: termID
           }
         },
-        headers: TplinkRepository.headers
+        headers: BrandTplinkRepository.headers
       }
 
       const response = await http.post(url, request)
@@ -199,7 +200,7 @@ export class TplinkRepository implements ProviderRepository {
 
     private async passthroughRequest (device: TpLinkDevice, command: Record<string, any>): Promise<Record<string, any>> {
       await this.refreshTokenIfIsExpired()
-      const url = TplinkRepository.generateUrlWithQueryString(device.appServerUrl, {
+      const url = BrandTplinkRepository.generateUrlWithQueryString(device.appServerUrl, {
         appName: 'Kasa_Android',
         termID: this.termID,
         appVer: '1.4.4.607',
@@ -210,7 +211,7 @@ export class TplinkRepository implements ProviderRepository {
       })
       const request = {
         headers: {
-          ...TplinkRepository.headers,
+          ...BrandTplinkRepository.headers,
           'cache-control': 'no-cache'
         },
         body: {
@@ -230,7 +231,7 @@ export class TplinkRepository implements ProviderRepository {
     }
 
     private static mapToDevice (device: TpLinkDevice, deviceState: LightState): Light {
-      if (TplinkRepository.isABulb(device)) {
+      if (BrandTplinkRepository.isABulb(device)) {
         return ({
           id: device.deviceId,
           name: device.alias,
@@ -239,7 +240,7 @@ export class TplinkRepository implements ProviderRepository {
           colorTemp: deviceState.colorTemp ?? 0,
           power: Boolean(deviceState.power),
           available: true,
-          provider: Provider.TpLink
+          provider: Brand.TpLink
         })
       } else {
         return ({
@@ -250,7 +251,7 @@ export class TplinkRepository implements ProviderRepository {
           colorTemp: 0,
           power: Boolean(deviceState.power),
           available: true,
-          provider: Provider.TpLink
+          provider: Brand.TpLink
         })
       }
     }

@@ -1,5 +1,5 @@
 import { LightGroupRepository } from './lightGroup.repository'
-import { Light, LightService } from '../../../light'
+import { Light, LightService } from '../../light'
 import {
   LightGroup,
   LightGroupEntity
@@ -21,11 +21,11 @@ export class LightGroupService<Model extends LightGroup, Entity extends LightGro
   }
 
   async getById (id: string): Promise<Model> {
-    return this.repository.findById(id)
+    return this.repository.getById(id)
   }
 
   async getAll (): Promise<Model[]> {
-    return this.repository.findAll()
+    return this.repository.getAll()
   }
 
   async update (id: string, update: Partial<Entity>): Promise<Model> {

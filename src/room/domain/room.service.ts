@@ -1,15 +1,16 @@
 import { Room, RoomEntity, RoomRequest } from './room.model'
-import { RoomRepository } from './room.repository'
+import { RoomRepository } from '../infrastructure/room.repository'
 import { generateId } from '../../common'
 import { LightService } from '../../light'
 import { inject, injectable } from 'tsyringe'
-import { LightGroupService } from '../../common/domain/lightGroup/lightGroup.service'
+import { LightGroupService } from '../../lightGroup/domain/lightGroup.service'
+import { LightGroupRepository } from '../../lightGroup/domain/lightGroup.repository'
 
 @injectable()
 export class RoomService extends LightGroupService<Room, RoomEntity> {
   constructor (
         @inject(LightService) lightService: LightService,
-        @inject(RoomRepository) repository: RoomRepository
+        @inject(RoomRepository) repository: LightGroupRepository<Room, RoomEntity>
   ) {
     super(lightService, repository)
   }

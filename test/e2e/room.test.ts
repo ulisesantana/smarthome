@@ -4,8 +4,8 @@ import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
 import { AppBootstrap } from '../../src/app.bootstrap'
 import { buildLight, buildRoom } from '../../src/common/test'
-import { Light, LightRepository } from '../../src/light'
-import { LifxRepository } from '../../src/provider'
+import { Light, LightMongoRepository } from '../../src/light'
+import { BrandLifxRepository } from '../../src/brand'
 
 const appBootstrap = container.resolve(AppBootstrap)
 appBootstrap.exec = async () => {}
@@ -106,9 +106,9 @@ describe('room endpoints', () => {
     describe('PATCH should', () => {
       it('update the room status', async () => {
         const server = await buildServer()
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const room = buildRoom({ name: 'Bedroom', color: 'red' })
         await setRoomCollection([room])
         const update = { name: 'Kitchen', color: 'black', icon: 'kitchen' }
@@ -126,9 +126,9 @@ describe('room endpoints', () => {
       })
       it('update the room lights', async () => {
         const server = await buildServer()
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const room = buildRoom({ lights: [buildLight(), buildLight()] })
         const newLights = [...room.lights, buildLight()]
         await setRoomCollection([room])
@@ -148,9 +148,9 @@ describe('room endpoints', () => {
       })
       it('return 404 if the room is not in database', async () => {
         const server = await buildServer()
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const room = buildRoom()
         await setRoomCollection([])
         const update = { name: 'Kitchen', color: 'black', icon: 'kitchen' }
@@ -202,9 +202,9 @@ describe('room endpoints', () => {
     describe('PATCH should', () => {
       it('toggle the room power', async () => {
         const server = await buildServer()
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const room = buildRoom({ lights: [buildLight()] })
         await setRoomCollection([room])
 
@@ -223,9 +223,9 @@ describe('room endpoints', () => {
       })
       it('return 404 if the room is not in database', async () => {
         const server = await buildServer()
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const room = buildRoom()
         await setRoomCollection([])
 
@@ -243,7 +243,7 @@ describe('room endpoints', () => {
 
 async function setRoomCollection (rooms: Room[]): Promise<void> {
   await container.resolve(MongoDB).useCollection(RoomRepository.collection).removeCollection()
-  await container.resolve(MongoDB).useCollection(LightRepository.collection).removeCollection()
+  await container.resolve(MongoDB).useCollection(LightMongoRepository.collection).removeCollection()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
   for await (const _room of generateRooms(rooms)) {}
 }
@@ -262,15 +262,15 @@ async function * generateRooms (rooms: Room[]) {
 }
 
 async function setLightCollection (lights: Light[]): Promise<void> {
-  await container.resolve(MongoDB).useCollection(LightRepository.collection).removeCollection()
+  await container.resolve(MongoDB).useCollection(LightMongoRepository.collection).removeCollection()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
   for await (const _light of generateLights(lights)) {}
 }
 
 async function * generateLights (lights: Light[]) {
-  const lightRepository = container.resolve(LightRepository)
+  const lightRepository = container.resolve(LightMongoRepository)
   for (const light of lights) {
-    await lightRepository.upsert(light)
+    await lightRepository.update(light)
     yield light
   }
 }

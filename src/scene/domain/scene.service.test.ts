@@ -1,13 +1,13 @@
 import { SceneService } from './scene.service'
 import { buildSceneEntity, buildScene, buildLight } from '../../common/test'
-import { SceneRepository } from './scene.repository'
+import { SceneRepository } from '../infrastructure/scene.repository'
 import { LightService } from '../../light'
 import { container } from 'tsyringe'
 import { Scene, SceneEntity, SceneRequest } from './scene.model'
 
 type MockRepositoriesParams = Partial<{
-    findById: Scene,
-    findAll: Scene[],
+    getById: Scene,
+    getAll: Scene[],
     update: SceneEntity
 }>
 
@@ -25,10 +25,10 @@ describe('Scene service should', () => {
     sceneRepository.remove = jest.fn()
 
     mockRepository = ({
-      findById, findAll, update
+      getById, getAll, update
     }: MockRepositoriesParams) => {
-      sceneRepository.findById = jest.fn(async () => findById || {} as Scene)
-      sceneRepository.findAll = jest.fn(async () => findAll || [] as Scene[])
+      sceneRepository.getById = jest.fn(async () => getById || {} as Scene)
+      sceneRepository.getAll = jest.fn(async () => getAll || [] as Scene[])
       sceneRepository.update = jest.fn(async () => update || {} as SceneEntity)
     }
   })
@@ -75,7 +75,7 @@ describe('Scene service should', () => {
 
   it('retrieve all scenes in database', async () => {
     const mockedScenes = [buildScene(), buildScene(), buildScene()]
-    mockRepository({ findAll: mockedScenes })
+    mockRepository({ getAll: mockedScenes })
 
     const scenesInDb = await new SceneService(lightService, sceneRepository).getAll()
 
@@ -84,12 +84,12 @@ describe('Scene service should', () => {
 
   it('retrieve scene by id', async () => {
     const mockedScene = buildScene()
-    mockRepository({ findById: mockedScene })
+    mockRepository({ getById: mockedScene })
 
     const scene = await new SceneService(lightService, sceneRepository).getById(mockedScene.id)
 
     expect(scene).toStrictEqual(mockedScene)
-    expect(sceneRepository.findById).toBeCalledWith(mockedScene.id)
+    expect(sceneRepository.getById).toBeCalledWith(mockedScene.id)
   })
 
   it('update a scene and return it', async () => {
@@ -98,20 +98,20 @@ describe('Scene service should', () => {
     const updatedScene = { ...mockedScene, ...updates }
     lightService.getLightsById = async () => mockedScene.lights
     mockRepository({
-      findById: mockedScene,
+      getById: mockedScene,
       update: { ...updatedScene, lights: updatedScene.lights.map(({ id }) => id) }
     })
 
     const scene = await new SceneService(lightService, sceneRepository).update(mockedScene.id, updates)
 
     expect(scene).toStrictEqual(updatedScene)
-    expect(sceneRepository.findById).toBeCalledWith(mockedScene.id)
+    expect(sceneRepository.getById).toBeCalledWith(mockedScene.id)
     expect(sceneRepository.update).toBeCalledWith({ id: mockedScene.id, ...updates })
   })
 
   it('remove scene', async () => {
     const mockedScene = buildScene()
-    mockRepository({ findById: mockedScene })
+    mockRepository({ getById: mockedScene })
 
     await new SceneService(lightService, sceneRepository).remove(mockedScene.id)
 
@@ -136,7 +136,7 @@ describe('Scene service should', () => {
           colorTemp: mockedScene.colorTemp
         }))
       }
-      mockRepository({ findById: { ...mockedScene } })
+      mockRepository({ getById: { ...mockedScene } })
 
       const scene = await new SceneService(lightService, sceneRepository).toggleLightsBySceneId(mockedScene.id)
 
@@ -160,7 +160,7 @@ describe('Scene service should', () => {
           colorTemp: mockedScene.colorTemp
         }))
       }
-      mockRepository({ findById: { ...mockedScene } })
+      mockRepository({ getById: { ...mockedScene } })
 
       const scene = await new SceneService(lightService, sceneRepository).toggleLightsBySceneId(mockedScene.id)
 
@@ -184,7 +184,7 @@ describe('Scene service should', () => {
           colorTemp: mockedScene.colorTemp
         }))
       }
-      mockRepository({ findById: { ...mockedScene } })
+      mockRepository({ getById: { ...mockedScene } })
 
       const scene = await new SceneService(lightService, sceneRepository).toggleLightsBySceneId(mockedScene.id)
 

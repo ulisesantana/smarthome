@@ -1,6 +1,6 @@
 import { Light, LightType } from '../../../light'
 import { generateId } from '../../index'
-import { Provider } from '../../../provider'
+import { Brand } from '../../../brand'
 
 export function buildLight (light: Partial<Light> = {}): Light {
   return {
@@ -10,7 +10,7 @@ export function buildLight (light: Partial<Light> = {}): Light {
     id: light.id ?? generateId(),
     name: light.name ?? 'Irrelevant light',
     power: light.power ?? true,
-    provider: light.provider ?? Provider.Lifx,
+    provider: light.provider ?? Brand.Lifx,
     type: light.type ?? LightType.Bulb
   }
 }

@@ -1,6 +1,6 @@
 export * from './domain/scene.error'
 export * from './domain/scene.model'
-export * from './domain/scene.repository'
+export * from './infrastructure/scene.repository'
 export * from './domain/scene.service'
 export * from './infrastructure/scene.controller'
 export * from './infrastructure/scene.router'

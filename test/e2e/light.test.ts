@@ -1,11 +1,10 @@
-import { Light, LightRepository } from '../../src/light'
+import { Light, LightMongoRepository } from '../../src/light'
 import { buildServer } from '../../src/server'
 import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
 import { AppBootstrap } from '../../src/app.bootstrap'
 import { buildLight } from '../../src/common/test'
-import { LifxRepository } from '../../src/provider/domain/lifx'
-import { Provider } from '../../src/provider'
+import { Brand, BrandLifxRepository } from '../../src/brand'
 
 const appBootstrap = container.resolve(AppBootstrap)
 appBootstrap.exec = async () => {}
@@ -53,9 +52,9 @@ describe('light endpoints', () => {
   describe('/light/:id', () => {
     describe('PATCH should', () => {
       it('update the light status', async () => {
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const server = await buildServer()
         const light = buildLight()
         await setLightCollection([light])
@@ -93,11 +92,11 @@ describe('light endpoints', () => {
   describe('/light/:id/toggle', () => {
     describe('PATCH should', () => {
       it('toggle the light power', async () => {
-        const lifxRepository = container.resolve(LifxRepository)
+        const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
-        container.registerInstance(LifxRepository, lifxRepository)
+        container.registerInstance(BrandLifxRepository, lifxRepository)
         const server = await buildServer()
-        const light = buildLight({ provider: Provider.TpLink })
+        const light = buildLight({ provider: Brand.TpLink })
         await setLightCollection([light])
 
         const response = await server.inject({
@@ -128,15 +127,15 @@ describe('light endpoints', () => {
 })
 
 async function setLightCollection (lights: Light[]): Promise<void> {
-  await container.resolve(MongoDB).useCollection(LightRepository.collection).removeCollection()
+  await container.resolve(MongoDB).useCollection(LightMongoRepository.collection).removeCollection()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
   for await (const _light of generateLights(lights)) {}
 }
 
 async function * generateLights (lights: Light[]) {
-  const lightRepository = container.resolve(LightRepository)
+  const lightRepository = container.resolve(LightMongoRepository)
   for (const light of lights) {
-    await lightRepository.upsert(light)
+    await lightRepository.update(light)
     yield light
   }
 }

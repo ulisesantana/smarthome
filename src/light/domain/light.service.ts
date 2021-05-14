@@ -1,7 +1,8 @@
-import { LifxService, Provider, TplinkService } from '../../provider'
+import { BrandLifxService, Brand, BrandTplinkService } from '../../brand'
 import { Light } from './light.model'
 import { LightRepository } from './light.repository'
 import { inject, injectable } from 'tsyringe'
+import { LightMongoRepository } from '../infrastructure/light.mongo.repository'
 
 @injectable()
 export class LightService {
@@ -9,38 +10,38 @@ export class LightService {
   static readonly whiteLight = 6500
 
   constructor (
-      @inject(LightRepository) private readonly repository: LightRepository,
-      @inject(TplinkService) private readonly tplinkService: TplinkService,
-      @inject(LifxService) private readonly lifxService: LifxService
+      @inject(LightMongoRepository) private readonly repository: LightRepository,
+      @inject(BrandTplinkService) private readonly tplinkService: BrandTplinkService,
+      @inject(BrandLifxService) private readonly lifxService: BrandLifxService
   ) {}
 
   getLights (): Promise<Light[]> {
-    return this.repository.findAll()
+    return this.repository.getAll()
   }
 
   getLightsById (ids: string[]): Promise<Light[]> {
-    return this.repository.findAllById(ids)
+    return this.repository.getAllById(ids)
   }
 
   async setLightStateById (id: string, config: Partial<Light>): Promise<Light> {
-    const light = await this.repository.findById(id)
+    const light = await this.repository.getById(id)
     const updatedLight = { ...light, ...config }
     return this.setLightStateBasedOnProvider(updatedLight)
   }
 
   async toggleLightById (id: string): Promise<Light> {
-    const light = await this.repository.findById(id)
+    const light = await this.repository.getById(id)
     return this.setLightStateBasedOnProvider({ ...light, power: !light.power })
   }
 
   private async setLightStateBasedOnProvider (light: Light): Promise<Light> {
-    if (light.provider === Provider.TpLink) {
+    if (light.provider === Brand.TpLink) {
       await this.tplinkService.setLightState(light)
-      await this.repository.upsert(light)
+      await this.repository.update(light)
     }
-    if (light.provider === Provider.Lifx) {
+    if (light.provider === Brand.Lifx) {
       await this.lifxService.setLightState(light)
-      await this.repository.upsert(light)
+      await this.repository.update(light)
     }
     return light
   }
