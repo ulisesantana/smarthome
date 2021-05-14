@@ -1,13 +1,10 @@
 import 'reflect-metadata'
 import fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import dotenv from 'dotenv'
-import { generateSwaggerConfig, fastifyDevelopmentOptions, fastifyProductionOptions } from './config'
-import { lightRoutes } from './light'
-import { roomRoutes } from './room'
-import { AppBootstrap } from './app.bootstrap'
+import { fastifyDevelopmentOptions, fastifyProductionOptions, generateSwaggerConfig } from './config'
+import { App } from './app'
 import { container } from 'tsyringe'
 import { Environment } from './common'
-import { sceneRoutes } from './scene'
 
 type ServerOptions = RouteShorthandOptions & {
     docsHost?: string,
@@ -18,17 +15,12 @@ export async function buildServer (options: ServerOptions = {
   docsHost: '127.0.0.1:8080',
   docsRoute: '/docs'
 }): Promise<FastifyInstance> {
-  const server = prepareServerBasedOnEnvironment(options)
-  await container.resolve(AppBootstrap).exec()
-
-  lightRoutes(server)
-  roomRoutes(server)
-  sceneRoutes(server)
-
+  const server = configServerBasedOnEnvironment(options)
+  await container.resolve(App).start(server)
   return server
 }
 
-function prepareServerBasedOnEnvironment (options: ServerOptions): FastifyInstance {
+function configServerBasedOnEnvironment (options: ServerOptions): FastifyInstance {
   const environment = new Environment()
   if (environment.isTest()) {
     dotenv.config()

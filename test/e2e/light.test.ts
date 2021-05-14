@@ -1,14 +1,14 @@
-import { Light, LightMongoRepository } from '../../src/light'
+import { Light, LightMongoRepository, lightRoutes } from '../../src/light'
 import { buildServer } from '../../src/server'
 import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
-import { AppBootstrap } from '../../src/app.bootstrap'
+import { App } from '../../src/app'
 import { buildLight } from '../../src/common/test'
 import { Brand, BrandLifxRepository } from '../../src/brand'
 
-const appBootstrap = container.resolve(AppBootstrap)
-appBootstrap.exec = async () => {}
-container.registerInstance(AppBootstrap, appBootstrap)
+const app = container.resolve(App)
+app.start = async (server) => { lightRoutes(server) }
+container.registerInstance(App, app)
 
 describe('light endpoints', () => {
   describe('/light', () => {

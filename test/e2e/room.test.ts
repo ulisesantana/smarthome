@@ -1,15 +1,15 @@
-import { Room, RoomRepository } from '../../src/room'
+import { Room, RoomRepository, roomRoutes } from '../../src/room'
 import { buildServer } from '../../src/server'
 import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
-import { AppBootstrap } from '../../src/app.bootstrap'
+import { App } from '../../src/app'
 import { buildLight, buildRoom } from '../../src/common/test'
 import { Light, LightMongoRepository } from '../../src/light'
 import { BrandLifxRepository } from '../../src/brand'
 
-const appBootstrap = container.resolve(AppBootstrap)
-appBootstrap.exec = async () => {}
-container.registerInstance(AppBootstrap, appBootstrap)
+const app = container.resolve(App)
+app.start = async (server) => { roomRoutes(server) }
+container.registerInstance(App, app)
 
 describe('room endpoints', () => {
   describe('/room', () => {

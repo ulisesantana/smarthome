@@ -1,16 +1,30 @@
-import { Light, LightMongoRepository, LightRepository } from './light'
+import { Light, LightMongoRepository, LightRepository, lightRoutes } from './light'
 import { BrandLifxService, Brand, BrandTplinkService } from './brand'
 import { inject, injectable } from 'tsyringe'
+import { FastifyInstance } from 'fastify'
+import { roomRoutes } from './room'
+import { sceneRoutes } from './scene'
 
 @injectable()
-export class AppBootstrap {
+export class App {
   constructor (
       @inject(LightMongoRepository) private readonly lightRepository: LightRepository,
       @inject(BrandTplinkService) private readonly tplinkService: BrandTplinkService,
       @inject(BrandLifxService) private readonly lifxService: BrandLifxService
   ) {}
 
-  async exec (): Promise<void> {
+  async start (server: FastifyInstance) {
+    await this.bootstrap()
+    App.addRoutes(server)
+  }
+
+  private static addRoutes (server: FastifyInstance): void {
+    lightRoutes(server)
+    roomRoutes(server)
+    sceneRoutes(server)
+  }
+
+  private async bootstrap (): Promise<void> {
     const start = Date.now()
     console.info('Loading lights from Lifx provider.')
     const lifxLightsToUpdate = await this.lifxService.init(
