@@ -26,14 +26,14 @@ describe('Smarthome API Bootstrap should', () => {
       lifxRepository.getAllLights = jest.fn(async () => lifxLights)
     }
   })
-  it('persist lights from providers', async () => {
+  it('persist lights from brands', async () => {
     const lifxLights = [
-      buildLight({ provider: Brand.Lifx }),
-      buildLight({ provider: Brand.Lifx })
+      buildLight({ brand: Brand.Lifx }),
+      buildLight({ brand: Brand.Lifx })
     ]
     const tplinkLights = [
-      buildLight({ provider: Brand.TpLink }),
-      buildLight({ provider: Brand.TpLink })
+      buildLight({ brand: Brand.TpLink }),
+      buildLight({ brand: Brand.TpLink })
     ]
     const lightsFixture = [...lifxLights, ...tplinkLights]
     mockRepositories({ lifxLights, tplinkLights })
@@ -51,24 +51,24 @@ describe('Smarthome API Bootstrap should', () => {
     mockRepositories({
       lifxLights: [
         buildLight({
-          provider: Brand.Lifx,
+          brand: Brand.Lifx,
           available: false,
           name: 'Lifx unavailable'
         }),
         buildLight({
-          provider: Brand.Lifx,
+          brand: Brand.Lifx,
           available: true,
           name: 'Lifx available'
         })
       ],
       tplinkLights: [
         buildLight({
-          provider: Brand.TpLink,
+          brand: Brand.TpLink,
           available: false,
           name: 'TP-Link unavailable'
         }),
         buildLight({
-          provider: Brand.TpLink,
+          brand: Brand.TpLink,
           available: true,
           name: 'TP-Link available'
         })]

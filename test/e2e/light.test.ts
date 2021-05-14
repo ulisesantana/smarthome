@@ -96,7 +96,7 @@ describe('light endpoints', () => {
         lifxRepository.setState = jest.fn()
         container.registerInstance(BrandLifxRepository, lifxRepository)
         const server = await buildServer()
-        const light = buildLight({ provider: Brand.TpLink })
+        const light = buildLight({ brand: Brand.TpLink })
         await setLightCollection([light])
 
         const response = await server.inject({

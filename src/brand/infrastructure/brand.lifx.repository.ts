@@ -7,34 +7,10 @@ import { BrandRepository } from '../domain/brand.repository'
 
 export interface LifxLight {
   id: string
-  uuid: string
   label: string
-  connected: boolean
   power: string
   color: { hue: number, saturation: number, kelvin: number }
   brightness: number
-  group: { id: string, name: string }
-  location: { id: string, name: string }
-  product: {
-    name: string
-    identifier: string
-    company: string
-    vendor_id: number
-    product_id: number
-    capabilities: {
-      has_color: boolean
-      has_variable_color_temp: boolean
-      has_ir: boolean
-      has_hev: boolean
-      has_chain: boolean
-      has_matrix: boolean
-      has_multizone: boolean
-      min_kelvin: number
-      max_kelvin: number
-    }
-  }
-  last_seen: string
-  seconds_since_seen: number
 }
 
 interface StateOptions {
@@ -124,7 +100,7 @@ export class BrandLifxRepository implements BrandRepository {
       colorTemp: device.color.kelvin,
       power: device.power === 'on',
       available: true,
-      provider: Brand.Lifx
+      brand: Brand.Lifx
     })
   }
 }

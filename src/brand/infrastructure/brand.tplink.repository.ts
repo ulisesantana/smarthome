@@ -240,7 +240,7 @@ export class BrandTplinkRepository implements BrandRepository {
           colorTemp: deviceState.colorTemp ?? 0,
           power: Boolean(deviceState.power),
           available: true,
-          provider: Brand.TpLink
+          brand: Brand.TpLink
         })
       } else {
         return ({
@@ -251,7 +251,7 @@ export class BrandTplinkRepository implements BrandRepository {
           colorTemp: 0,
           power: Boolean(deviceState.power),
           available: true,
-          provider: Brand.TpLink
+          brand: Brand.TpLink
         })
       }
     }

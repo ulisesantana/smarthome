@@ -13,5 +13,5 @@ export interface Light {
     colorTemp: number
     power: boolean
     available: boolean
-    provider: Brand
+    brand: Brand
 }

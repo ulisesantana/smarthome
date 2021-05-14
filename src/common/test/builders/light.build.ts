@@ -10,7 +10,7 @@ export function buildLight (light: Partial<Light> = {}): Light {
     id: light.id ?? generateId(),
     name: light.name ?? 'Irrelevant light',
     power: light.power ?? true,
-    provider: light.provider ?? Brand.Lifx,
+    brand: light.brand ?? Brand.Lifx,
     type: light.type ?? LightType.Bulb
   }
 }

@@ -43,9 +43,9 @@ export class LightMongoRepository implements LightRepository {
       }
     }
 
-    async getAllByProvider (provider: Brand): Promise<Light[]> {
+    async getAllByProvider (brand: Brand): Promise<Light[]> {
       try {
-        const response = await this.mongodb.find<LightEntity>({ provider })
+        const response = await this.mongodb.find<LightEntity>({ brand })
         return response.map(LightMongoRepository.mapToDomain)
       } catch (error) {
         throw new LightError(error)
@@ -69,7 +69,7 @@ export class LightMongoRepository implements LightRepository {
         name: deviceEntity.name ?? '',
         power: deviceEntity.power ?? false,
         available: deviceEntity.available ?? false,
-        provider: deviceEntity.provider ?? Brand.Unknown,
+        brand: deviceEntity.brand ?? Brand.Unknown,
         type: deviceEntity.type ?? LightType.Plug
       }
     }
@@ -82,7 +82,7 @@ export class LightMongoRepository implements LightRepository {
         name: deviceEntity.name ?? '',
         power: deviceEntity.power ?? false,
         available: deviceEntity.available ?? false,
-        provider: deviceEntity.provider ?? Brand.Unknown,
+        brand: deviceEntity.brand ?? Brand.Unknown,
         type: deviceEntity.type ?? LightType.Bulb
       }
     }

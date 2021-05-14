@@ -12,7 +12,7 @@ export const lightStatus = S.object()
   .prop('name', S.string().required())
   .prop('type', S.string().required())
   .prop('brightness', S.number())
-  .prop('provider', S.string())
+  .prop('brand', S.string())
   .prop('available', S.boolean())
   .prop('colorTemp', S.number())
 

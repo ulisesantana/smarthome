@@ -56,7 +56,7 @@ describe('Light service should', () => {
   })
 
   it('toggle TP-Link device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.TpLink, power: true })
+    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.TpLink, power: true })
     mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
@@ -67,7 +67,7 @@ describe('Light service should', () => {
 
     expect(updatedLight.power).toBe(!light.power)
     expect(updatedLight.id).toBe(light.id)
-    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.brand).toBe(light.brand)
     expect(updatedLight.available).toBe(light.available)
     expect(updatedLight.brightness).toBe(light.brightness)
     expect(updatedLight.colorTemp).toBe(light.colorTemp)
@@ -79,7 +79,7 @@ describe('Light service should', () => {
   })
 
   it('toggle Lifx device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.Lifx, power: true })
+    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.Lifx, power: true })
     mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
@@ -90,7 +90,7 @@ describe('Light service should', () => {
 
     expect(updatedLight.power).toBe(!light.power)
     expect(updatedLight.id).toBe(light.id)
-    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.brand).toBe(light.brand)
     expect(updatedLight.available).toBe(light.available)
     expect(updatedLight.brightness).toBe(light.brightness)
     expect(updatedLight.colorTemp).toBe(light.colorTemp)
@@ -102,7 +102,7 @@ describe('Light service should', () => {
   })
 
   it('change light state in TP-Link device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.TpLink })
+    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.TpLink })
     const config = { power: false, brightness: 50 }
     mockRepositories({ getById: light })
 
@@ -114,7 +114,7 @@ describe('Light service should', () => {
 
     expect(updatedLight.power).toBe(config.power)
     expect(updatedLight.id).toBe(light.id)
-    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.brand).toBe(light.brand)
     expect(updatedLight.available).toBe(light.available)
     expect(updatedLight.brightness).toBe(config.brightness)
     expect(updatedLight.colorTemp).toBe(light.colorTemp)
@@ -126,7 +126,7 @@ describe('Light service should', () => {
   })
 
   it('change light state in Lifx device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', provider: Brand.Lifx })
+    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.Lifx })
     const config = { power: false, brightness: 50 }
     mockRepositories({ getById: light })
 
@@ -138,7 +138,7 @@ describe('Light service should', () => {
 
     expect(updatedLight.power).toBe(config.power)
     expect(updatedLight.id).toBe(light.id)
-    expect(updatedLight.provider).toBe(light.provider)
+    expect(updatedLight.brand).toBe(light.brand)
     expect(updatedLight.available).toBe(light.available)
     expect(updatedLight.brightness).toBe(config.brightness)
     expect(updatedLight.colorTemp).toBe(light.colorTemp)

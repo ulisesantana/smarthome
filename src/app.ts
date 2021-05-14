@@ -26,12 +26,12 @@ export class App {
 
   private async bootstrap (): Promise<void> {
     const start = Date.now()
-    console.info('Loading lights from Lifx provider.')
+    console.info('Loading lights from Lifx brand.')
     const lifxLightsToUpdate = await this.lifxService.init(
       await this.lightRepository.getAllByProvider(Brand.Lifx)
     )
 
-    console.info('Loading lights from TP-Link provider.')
+    console.info('Loading lights from TP-Link brand.')
     const tplinkLightsToUpdate = await this.tplinkService.init(
       await this.lightRepository.getAllByProvider(Brand.TpLink)
     )
