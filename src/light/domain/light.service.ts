@@ -1,4 +1,4 @@
-import { BrandLifxService, Brand, BrandTplinkService } from '../../brand'
+import { BrandService } from '../../brand'
 import { Light } from './light.model'
 import { LightRepository } from './light.repository'
 import { inject, injectable } from 'tsyringe'
@@ -11,8 +11,7 @@ export class LightService {
 
   constructor (
       @inject(LightMongoRepository) private readonly repository: LightRepository,
-      @inject(BrandTplinkService) private readonly tplinkService: BrandTplinkService,
-      @inject(BrandLifxService) private readonly lifxService: BrandLifxService
+      @inject(BrandService) private readonly brandService: BrandService
   ) {}
 
   getLights (): Promise<Light[]> {
@@ -26,23 +25,21 @@ export class LightService {
   async setLightStateById (id: string, config: Partial<Light>): Promise<Light> {
     const light = await this.repository.getById(id)
     const updatedLight = { ...light, ...config }
-    return this.setLightStateBasedOnBrand(updatedLight)
+    return this.setLightState(updatedLight)
   }
 
   async toggleLightById (id: string): Promise<Light> {
     const light = await this.repository.getById(id)
-    return this.setLightStateBasedOnBrand({ ...light, power: !light.power })
+    return this.setLightState({ ...light, power: !light.power })
   }
 
-  private async setLightStateBasedOnBrand (light: Light): Promise<Light> {
-    if (light.brand === Brand.TpLink) {
-      await this.tplinkService.setLightState(light)
-      await this.repository.update(light)
-    }
-    if (light.brand === Brand.Lifx) {
-      await this.lifxService.setLightState(light)
-      await this.repository.update(light)
-    }
+  async updateLight (light: Light): Promise<Light> {
+    return await this.repository.update(light)
+  }
+
+  private async setLightState (light: Light): Promise<Light> {
+    await this.brandService.setLightState(light)
+    await this.repository.update(light)
     return light
   }
 }

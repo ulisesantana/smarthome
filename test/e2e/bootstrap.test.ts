@@ -1,4 +1,4 @@
-import { Light, LightMongoRepository } from '../../src/light'
+import { Light, LightMongoRepository, LightService } from '../../src/light'
 import { buildServer } from '../../src/server'
 import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
@@ -10,7 +10,7 @@ dotenv.config()
 
 let mockRepositories: Function
 const lightsCollection = container.resolve(MongoDB).useCollection(LightMongoRepository.collection)
-const lightRepository = container.resolve(LightMongoRepository)
+const lightService = container.resolve(LightService)
 
 describe('Smarthome API Bootstrap should', () => {
   beforeEach(async () => {
@@ -37,13 +37,13 @@ describe('Smarthome API Bootstrap should', () => {
     ]
     const lightsFixture = [...lifxLights, ...tplinkLights]
     mockRepositories({ lifxLights, tplinkLights })
-    let lights = await lightRepository.getAll()
+    let lights = await lightService.getLights()
     expect(lights).toHaveLength(0)
 
     const server = await buildServer()
     await server.close()
 
-    lights = await lightRepository.getAll()
+    lights = await lightService.getLights()
     expect(lights).toStrictEqual(lightsFixture)
   })
   it('notify if lights are found or not', async () => {
@@ -77,9 +77,9 @@ describe('Smarthome API Bootstrap should', () => {
     const server = await buildServer()
     await server.close()
 
-    expect(console.info).toBeCalledWith('Light Lifx unavailable not found.')
-    expect(console.info).toBeCalledWith('Found light Lifx available.')
-    expect(console.info).toBeCalledWith('Light TP-Link unavailable not found.')
-    expect(console.info).toBeCalledWith('Found light TP-Link available.')
+    expect(console.info).toBeCalledWith('Light Lifx unavailable from lifx brand not found.')
+    expect(console.info).toBeCalledWith('Found light Lifx available from lifx brand.')
+    expect(console.info).toBeCalledWith('Light TP-Link unavailable from tplink brand not found.')
+    expect(console.info).toBeCalledWith('Found light TP-Link available from tplink brand.')
   })
 })

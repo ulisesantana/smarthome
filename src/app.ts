@@ -1,5 +1,5 @@
-import { Light, LightMongoRepository, LightRepository, lightRoutes } from './light'
-import { BrandLifxService, Brand, BrandTplinkService } from './brand'
+import { Light, lightRoutes, LightService } from './light'
+import { BrandService } from './brand'
 import { inject, injectable } from 'tsyringe'
 import { FastifyInstance } from 'fastify'
 import { roomRoutes } from './room'
@@ -8,9 +8,8 @@ import { sceneRoutes } from './scene'
 @injectable()
 export class App {
   constructor (
-      @inject(LightMongoRepository) private readonly lightRepository: LightRepository,
-      @inject(BrandTplinkService) private readonly tplinkService: BrandTplinkService,
-      @inject(BrandLifxService) private readonly lifxService: BrandLifxService
+      @inject(LightService) private readonly lightService: LightService,
+      @inject(BrandService) private readonly brandService: BrandService
   ) {}
 
   async start (server: FastifyInstance) {
@@ -26,25 +25,18 @@ export class App {
 
   private async bootstrap (): Promise<void> {
     const start = Date.now()
-    console.info('Loading lights from Lifx brand.')
-    const lifxLightsToUpdate = await this.lifxService.init(
-      await this.lightRepository.getAllByProvider(Brand.Lifx)
-    )
-
-    console.info('Loading lights from TP-Link brand.')
-    const tplinkLightsToUpdate = await this.tplinkService.init(
-      await this.lightRepository.getAllByProvider(Brand.TpLink)
+    console.info('Loading lights.')
+    const lightsToUpdate = await this.brandService.init(
+      await this.lightService.getLights()
     )
 
     console.info('Checking lights against database.')
-    const updatedLights = this.updateLights(
-      [...lifxLightsToUpdate, ...tplinkLightsToUpdate]
-    )
+    const updatedLights = this.updateLights(lightsToUpdate)
     for await (const light of updatedLights) {
       if (light.available) {
-        console.info(`Found light ${light.name}.`)
+        console.info(`Found light ${light.name} from ${light.brand} brand.`)
       } else {
-        console.info(`Light ${light.name} not found.`)
+        console.info(`Light ${light.name} from ${light.brand} brand not found.`)
       }
     }
     console.info(`Took ${(Date.now() - start) / 1000} seconds to bootstrap Smarthome API.`)
@@ -52,7 +44,7 @@ export class App {
 
   private async * updateLights (lights: Light[]): AsyncGenerator<Light> {
     for (const light of lights) {
-      const updatedLight = await this.lightRepository.update(light)
+      const updatedLight = await this.lightService.updateLight(light)
       yield updatedLight
     }
   }

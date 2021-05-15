@@ -43,15 +43,6 @@ export class LightMongoRepository implements LightRepository {
       }
     }
 
-    async getAllByProvider (brand: Brand): Promise<Light[]> {
-      try {
-        const response = await this.mongodb.find<LightEntity>({ brand })
-        return response.map(LightMongoRepository.mapToDomain)
-      } catch (error) {
-        throw new LightError(error)
-      }
-    }
-
     async update (device: Light): Promise<Light> {
       try {
         const response = await this.mongodb.upsertOne<LightEntity>({ id: device.id }, LightMongoRepository.mapToDatabase(device))
