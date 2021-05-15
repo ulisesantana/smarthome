@@ -6,21 +6,10 @@ import { BrandRepository } from '../domain/brand.repository'
 
 interface TpLinkDevice {
     deviceType: string
-    role: number
-    fwVer: string
     appServerUrl: string
-    deviceRegion: string
     deviceId: string
     deviceName: string
-    deviceHwVer: string
     alias: string
-    deviceMac: string
-    oemId: string
-    deviceModel: string
-    hwId: string
-    fwId: string
-    isSameRegion: boolean
-    status: number
 }
 
 interface LightState {
@@ -51,6 +40,7 @@ export class BrandTplinkRepository implements BrandRepository {
       'Content-Type': 'application/json'
     }
 
+    // TODO: Inject http for mocking and testing
     constructor (
         @inject(Environment) private readonly environment: Environment,
         @inject(MongoDB) instance: MongoDB

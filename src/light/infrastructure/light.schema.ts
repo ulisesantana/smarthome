@@ -40,6 +40,7 @@ export const toggleLightById = {
   }
 }
 
+// TODO: Remove colorTemp validation and test it
 export const updateLightStatusById = {
   tags: ['lights'],
   summary: 'Update light status by id',

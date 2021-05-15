@@ -6,6 +6,7 @@ import { LightMongoRepository } from '../infrastructure/light.mongo.repository'
 
 @injectable()
 export class LightService {
+  // Move this to Light
   static readonly warmLight = 2700
   static readonly whiteLight = 6500
 

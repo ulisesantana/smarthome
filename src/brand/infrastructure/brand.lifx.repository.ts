@@ -27,6 +27,7 @@ export class BrandLifxRepository implements BrandRepository {
   private readonly url = 'https://api.lifx.com/v1/lights'
   private readonly token: string
 
+  // TODO: Inject http for mocking and testing
   constructor (@inject(Environment) private readonly environment: Environment) {
     this.token = environment.getVariables().lifxToken
     if (this.environment.isProduction()) {
