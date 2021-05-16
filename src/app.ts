@@ -1,4 +1,4 @@
-import { Light, lightRoutes, LightService } from './light'
+import { Light, lightRoutes, Lights, LightService } from './light'
 import { BrandService } from './brand'
 import { inject, injectable } from 'tsyringe'
 import { FastifyInstance } from 'fastify'
@@ -42,9 +42,9 @@ export class App {
     console.info(`Took ${(Date.now() - start) / 1000} seconds to bootstrap Smarthome API.`)
   }
 
-  private async * updateLights (lights: Light[]): AsyncGenerator<Light> {
-    for (const light of lights) {
-      const updatedLight = await this.lightService.updateLight(light)
+  private async * updateLights (lights: Lights): AsyncGenerator<Light> {
+    for (const light of lights.getAll()) {
+      const updatedLight = await this.lightService.saveLight(light)
       yield updatedLight
     }
   }

@@ -1,5 +1,5 @@
 import { http, generateId, Environment, MongoDB, MongoAPI } from '../../common'
-import { Light, LightType } from '../../light'
+import { Light, Lights, LightType } from '../../light'
 import { Brand } from '../domain/brand.service'
 import { inject, injectable } from 'tsyringe'
 import { BrandRepository } from '../domain/brand.repository'
@@ -61,7 +61,7 @@ export class BrandTplinkRepository implements BrandRepository {
       }
     }
 
-    async getAllLights (): Promise<Light[]> {
+    async getAllLights (): Promise<Lights> {
       await this.refreshTokenIfIsExpired()
       const url = BrandTplinkRepository.generateUrlWithQueryString(this.url, {
         appName: 'Kasa_Android',
@@ -95,7 +95,7 @@ export class BrandTplinkRepository implements BrandRepository {
       }
     }
 
-    private async processDeviceList (deviceList: TpLinkDevice[]): Promise<Light[]> {
+    private async processDeviceList (deviceList: TpLinkDevice[]): Promise<Lights> {
       const deviceListIds = []
       for await (const { deviceId } of this.saveDeviceList(deviceList)) {
         deviceListIds.push(deviceId)
@@ -105,7 +105,7 @@ export class BrandTplinkRepository implements BrandRepository {
       for await (const light of this.getLightsById(deviceListIds)) {
         lights.push(light)
       }
-      return lights
+      return new Lights(lights)
     }
 
     private async * saveDeviceList (devices: TpLinkDevice[]): AsyncGenerator<TpLinkDevice> {
@@ -222,25 +222,23 @@ export class BrandTplinkRepository implements BrandRepository {
 
     private static mapToDevice (device: TpLinkDevice, deviceState: LightState): Light {
       if (BrandTplinkRepository.isABulb(device)) {
-        return ({
+        return new Light({
           id: device.deviceId,
           name: device.alias,
           type: LightType.Bulb,
-          brightness: deviceState.brightness ?? 0,
-          colorTemp: deviceState.colorTemp ?? 0,
+          brightness: deviceState.brightness,
+          colorTemp: deviceState.colorTemp,
           power: Boolean(deviceState.power),
-          available: true,
           brand: Brand.TpLink
         })
       } else {
-        return ({
+        return new Light({
           id: device.deviceId,
           name: device.alias,
           type: LightType.Plug,
           brightness: 0,
           colorTemp: 0,
           power: Boolean(deviceState.power),
-          available: true,
           brand: Brand.TpLink
         })
       }

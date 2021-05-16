@@ -4,6 +4,7 @@ import { LightError } from '../domain/light.error'
 import { Brand } from '../../brand'
 import { inject, injectable } from 'tsyringe'
 import { LightRepository } from '../domain/light.repository'
+import { Lights } from '../domain/lights.model'
 
 type LightEntity = Partial<Light>
 
@@ -16,19 +17,19 @@ export class LightMongoRepository implements LightRepository {
       this.mongodb = instance.useCollection(LightMongoRepository.collection)
     }
 
-    async getAll (): Promise<Light[]> {
+    async getAll (): Promise<Lights> {
       try {
         const response = await this.mongodb.find<LightEntity>({})
-        return response.map(LightMongoRepository.mapToDomain)
+        return new Lights(response.map(LightMongoRepository.mapToDomain))
       } catch (error) {
         throw new LightError(error)
       }
     }
 
-    async getAllById (ids: string[]): Promise<Light[]> {
+    async getAllById (ids: string[]): Promise<Lights> {
       try {
         const response = await this.mongodb.find<LightEntity>({ id: { $in: ids } })
-        return response.map(LightMongoRepository.mapToDomain)
+        return new Lights(response.map(LightMongoRepository.mapToDomain))
       } catch (error) {
         throw new LightError(error)
       }
@@ -43,38 +44,39 @@ export class LightMongoRepository implements LightRepository {
       }
     }
 
-    async update (device: Light): Promise<Light> {
+    async update (light: Light): Promise<Light> {
       try {
-        const response = await this.mongodb.upsertOne<LightEntity>({ id: device.id }, LightMongoRepository.mapToDatabase(device))
+        const lightToUpdate = LightMongoRepository.mapToDatabase(light)
+        const response = await this.mongodb.upsertOne<LightEntity>({ id: lightToUpdate.id }, lightToUpdate)
         return LightMongoRepository.mapToDomain(response)
       } catch (error) {
         throw new LightError(error)
       }
     }
 
-    private static mapToDatabase (deviceEntity: LightEntity = {}): LightEntity {
+    private static mapToDatabase (light: Light): LightEntity {
       return {
-        brightness: deviceEntity.brightness ?? 0,
-        colorTemp: deviceEntity.colorTemp ?? 0,
-        id: deviceEntity.id ?? '',
-        name: deviceEntity.name ?? '',
-        power: deviceEntity.power ?? false,
-        available: deviceEntity.available ?? false,
-        brand: deviceEntity.brand ?? Brand.Unknown,
-        type: deviceEntity.type ?? LightType.Plug
+        brightness: light.brightness ?? 0,
+        colorTemp: light.colorTemp ?? 0,
+        id: light.id ?? '',
+        name: light.name ?? '',
+        power: light.power ?? false,
+        available: light.available ?? false,
+        brand: light.brand ?? Brand.Unknown,
+        type: light.type ?? LightType.Plug
       }
     }
 
     private static mapToDomain (deviceEntity: LightEntity = {}): Light {
-      return {
-        brightness: deviceEntity.brightness ?? 0,
-        colorTemp: deviceEntity.colorTemp ?? 0,
+      return new Light({
+        brightness: deviceEntity.brightness,
+        colorTemp: deviceEntity.colorTemp,
         id: deviceEntity.id ?? '',
         name: deviceEntity.name ?? '',
-        power: deviceEntity.power ?? false,
-        available: deviceEntity.available ?? false,
+        power: deviceEntity.power,
+        available: deviceEntity.available,
         brand: deviceEntity.brand ?? Brand.Unknown,
-        type: deviceEntity.type ?? LightType.Bulb
-      }
+        type: deviceEntity.type
+      })
     }
 }

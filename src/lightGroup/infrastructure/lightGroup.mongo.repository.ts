@@ -1,7 +1,8 @@
 import { MongoAPI } from '../../common'
-import { LightGroup, LightGroupEntity } from '../domain/lightGroup.model'
+import { LightGroup, LightGroupEntity, RawLightGroup } from '../domain/lightGroup.model'
 import { FilterQuery } from 'mongodb'
 import { LightGroupRepository } from '../domain/lightGroup.repository'
+import { Light, Lights } from '../../light'
 
 type Constructor<T> = new(...args: any[]) => T
 
@@ -13,7 +14,7 @@ export abstract class LightGroupMongoRepository<Model extends LightGroup, Entity
 
   async getAll (): Promise<Model[]> {
     try {
-      return await this.mongodb.aggregate<Model>([{
+      const models = await this.mongodb.aggregate<RawLightGroup>([{
         $lookup: {
           from: 'lights',
           localField: 'lights',
@@ -21,6 +22,10 @@ export abstract class LightGroupMongoRepository<Model extends LightGroup, Entity
           as: 'lights'
         }
       }])
+      return models.map(model => ({
+        ...model,
+        lights: new Lights(model?.lights?.map(light => new Light(light)))
+      }) as Model)
     } catch (error) {
       throw new this.ModelError(error)
     }
@@ -28,7 +33,7 @@ export abstract class LightGroupMongoRepository<Model extends LightGroup, Entity
 
   async getById (id: string): Promise<Model> {
     try {
-      const [model] = await this.mongodb.aggregate<Model>([
+      const [model] = await this.mongodb.aggregate<RawLightGroup>([
         { $match: { id } },
         {
           $lookup: {
@@ -38,7 +43,10 @@ export abstract class LightGroupMongoRepository<Model extends LightGroup, Entity
             as: 'lights'
           }
         }])
-      return model
+      return {
+        ...model,
+        lights: new Lights(model?.lights?.map(light => new Light(light)))
+      } as Model
     } catch (error) {
       throw new this.ModelError(error)
     }

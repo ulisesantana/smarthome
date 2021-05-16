@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Light, LightType } from '../../light'
+import { Light, Lights, LightType } from '../../light'
 import { Environment, http } from '../../common'
 import { Brand } from '../domain/brand.service'
 import { inject, injectable } from 'tsyringe'
@@ -38,14 +38,15 @@ export class BrandLifxRepository implements BrandRepository {
     }
   }
 
-  async getAllLights (): Promise<Light[]> {
+  async getAllLights (): Promise<Lights> {
     const response = await http.get(`${this.url}/all`, {
       auth: {
         bearer: this.token
       }
     })
     const lights = response.toJSON().body
-    return lights.map(BrandLifxRepository.mapToDomain)
+    const result = new Lights(lights.map(BrandLifxRepository.mapToDomain))
+    return result
   }
 
   async setState (device: Light): Promise<void> {
@@ -93,7 +94,7 @@ export class BrandLifxRepository implements BrandRepository {
   }
 
   private static mapToDomain (device: LifxLight): Light {
-    return ({
+    return new Light({
       id: device.id,
       name: device.label.trim(),
       type: LightType.Bulb,

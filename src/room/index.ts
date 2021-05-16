@@ -1,5 +1,6 @@
 export * from './domain/room.error'
 export * from './domain/room.model'
-export * from './infrastructure/room.repository'
 export * from './domain/room.service'
+export * from './infrastructure/room.controller'
+export * from './infrastructure/room.repository'
 export * from './infrastructure/room.router'

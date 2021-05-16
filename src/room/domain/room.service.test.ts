@@ -1,9 +1,9 @@
 import { RoomService } from './room.service'
-import { buildRoomEntity, buildRoom, buildLight } from '../../common/test'
+import { buildLight, buildRoom, buildRoomEntity } from '../../common/test'
 import { RoomRepository } from '../infrastructure/room.repository'
-import { LightService } from '../../light'
+import { Light, Lights, LightService } from '../../light'
 import { container } from 'tsyringe'
-import { Room, RoomEntity, RoomRequest } from './room.model'
+import { Room, RoomEntity } from './room.model'
 
 type MockRepositoriesParams = Partial<{
     getById: Room,
@@ -36,8 +36,8 @@ describe('Room service should', () => {
     it('with given values', async () => {
       const mockId = 'noId'
       const mockRoom = buildRoomEntity({ id: mockId })
-      const expectedRoom = buildRoom({ ...mockRoom, lights: [buildLight({ id: 'irrelevantLightId' })] })
-      lightService.getLightsById = jest.fn(async () => [expectedRoom.lights[0]])
+      const expectedRoom = buildRoom({ ...mockRoom, lights: new Lights([buildLight({ id: 'irrelevantLightId' })]) })
+      lightService.getLightsById = jest.fn(async () => new Lights([expectedRoom.lights.getAll()[0]]))
 
       const createdRoom = await new RoomService(lightService, roomRepository).create(mockRoom)
 
@@ -49,10 +49,10 @@ describe('Room service should', () => {
     })
 
     it('filled with default values if no values are given', async () => {
-      lightService.getLightsById = jest.fn(async () => [])
-      const defaultRoomValues: RoomRequest = {
+      lightService.getLightsById = jest.fn(async () => new Lights([]))
+      const defaultRoomValues: Partial<Room> = {
         color: '#708090',
-        lights: [],
+        lights: new Lights([]),
         icon: 'self_improvement',
         name: 'NO NAME'
       }
@@ -92,7 +92,7 @@ describe('Room service should', () => {
     lightService.getLightsById = async () => mockedRoom.lights
     mockRepository({
       getById: mockedRoom,
-      update: { ...updatedRoom, lights: updatedRoom.lights.map(({ id }) => id) }
+      update: { ...updatedRoom, lights: updatedRoom.lights.getIds() }
     })
 
     const room = await new RoomService(lightService, roomRepository).update(mockedRoom.id, updates)
@@ -114,18 +114,15 @@ describe('Room service should', () => {
   describe('toggle room devices by room id', () => {
     it('if any device is powered on then all will be powered off', async () => {
       const mockedRoom = buildRoom({
-        lights: [
+        lights: new Lights([
           buildLight({ id: 'irrelevantDevice1', power: true }),
           buildLight({ id: 'irrelevantDevice2', power: false }),
           buildLight({ id: 'irrelevantDevice3', power: false })
-        ]
+        ])
       })
       const toggledRoom: Room = {
         ...mockedRoom,
-        lights: mockedRoom.lights.map(light => ({
-          ...light,
-          power: false
-        }))
+        lights: new Lights(mockedRoom.lights.getAll().map(light => light.power ? new Light(light).togglePower() : new Light(light)))
       }
       mockRepository({ getById: { ...mockedRoom } })
 
@@ -136,17 +133,17 @@ describe('Room service should', () => {
     })
     it('if all devices are powered off then all will be powered on', async () => {
       const mockedRoom = buildRoom({
-        lights: [
+        lights: new Lights([
           buildLight({ id: 'irrelevantDevice1', power: false }),
           buildLight({ id: 'irrelevantDevice2', power: false }),
           buildLight({ id: 'irrelevantDevice3', power: false })
-        ]
+        ])
       })
       const toggledRoom: Room = {
         ...mockedRoom,
-        lights: mockedRoom.lights.map(light => ({
-          ...light,
-          power: true
+        lights: new Lights(mockedRoom.lights.getAll().map(light => {
+          light.togglePower()
+          return light
         }))
       }
       mockRepository({ getById: { ...mockedRoom } })

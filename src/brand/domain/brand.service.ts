@@ -1,4 +1,4 @@
-import { Light } from '../../light'
+import { Light, Lights } from '../../light'
 import { BrandRepository } from './brand.repository'
 import { inject, injectable } from 'tsyringe'
 import { BrandLifxRepository } from '../infrastructure/brand.lifx.repository'
@@ -10,11 +10,6 @@ export enum Brand {
   Unknown = 'unknown'
 }
 
-interface LightsByBrand {
-  lifxLights: Light[],
-  tplinkLights: Light[]
-}
-
 @injectable()
 export class BrandService {
   constructor (
@@ -22,16 +17,15 @@ export class BrandService {
     @inject(BrandTplinkRepository) private tplinkRepository: BrandRepository
   ) {}
 
-  async init (dbLights: Light[]): Promise<Light[]> {
-    const {
-      lifxLights,
-      tplinkLights
-    } = this.splitLightsByBrand(dbLights)
-
-    return [
-      ...this.setLightsAvailability(lifxLights, await this.lifxRepository.getAllLights()),
-      ...this.setLightsAvailability(tplinkLights, await this.tplinkRepository.getAllLights())
-    ]
+  async init (dbLights: Lights): Promise<Lights> {
+    const [lifxLights, tplinkLights] = await Promise.all([
+      this.lifxRepository.getAllLights(),
+      this.tplinkRepository.getAllLights()
+    ])
+    return new Lights([
+      ...this.setLightsAvailability(dbLights.filterByBrand(Brand.Lifx), lifxLights).getAll(),
+      ...this.setLightsAvailability(dbLights.filterByBrand(Brand.TpLink), tplinkLights).getAll()
+    ])
   }
 
   async setLightState (light: Light): Promise<void> {
@@ -43,37 +37,16 @@ export class BrandService {
     }
   }
 
-  private setLightsAvailability (dbLights: Light[], brandLights: Light[]): Light[] {
-    const brandLightsIds = brandLights.map(({ id }) => id)
-    const brandMissingLights = dbLights.filter(({ id }) => !brandLightsIds.includes(id))
-
-    return [
-      ...brandLights,
-      ...brandMissingLights.map(light => (({
-        ...light,
-        available: false
-      })))
-    ]
-  }
-
-  private splitLightsByBrand (lights: Light[]): LightsByBrand {
-    return lights.reduce<LightsByBrand>((lightsByBrand, light) => {
-      if (light.brand === Brand.Lifx) {
-        return {
-          ...lightsByBrand,
-          lifxLights: [...lightsByBrand.lifxLights, light]
+  private setLightsAvailability (dbLights: Lights, brandLights: Lights): Lights {
+    const brandLightsIds = brandLights.getIds()
+    return new Lights([
+      ...brandLights.getAll(),
+      ...dbLights.getAll().map(light => {
+        if (!brandLightsIds.includes(light.id)) {
+          light.disable()
         }
-      }
-      if (light.brand === Brand.TpLink) {
-        return {
-          ...lightsByBrand,
-          tplinkLights: [...lightsByBrand.tplinkLights, light]
-        }
-      }
-      return lightsByBrand
-    }, {
-      lifxLights: [],
-      tplinkLights: []
-    })
+        return light
+      })
+    ])
   }
 }

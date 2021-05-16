@@ -1,8 +1,8 @@
-import { Light, LightMongoRepository, LightService } from '../../src/light'
+import { LightMongoRepository, Lights, LightService } from '../../src/light'
 import { buildServer } from '../../src/server'
 import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
-import { BrandLifxRepository, Brand, BrandTplinkRepository } from '../../src/brand'
+import { Brand, BrandLifxRepository, BrandTplinkRepository } from '../../src/brand'
 import { buildLight } from '../../src/common/test'
 import dotenv from 'dotenv'
 
@@ -21,24 +21,24 @@ describe('Smarthome API Bootstrap should', () => {
     container.registerInstance(BrandLifxRepository, lifxRepository)
     container.registerInstance(BrandTplinkRepository, tplinkRepository)
 
-    mockRepositories = ({ lifxLights, tplinkLights }: Record<string, Light[]>) => {
+    mockRepositories = ({ lifxLights, tplinkLights }: Record<string, Lights>) => {
       tplinkRepository.getAllLights = jest.fn(async () => tplinkLights)
       lifxRepository.getAllLights = jest.fn(async () => lifxLights)
     }
   })
   it('persist lights from brands', async () => {
-    const lifxLights = [
+    const lifxLights = new Lights([
       buildLight({ brand: Brand.Lifx }),
       buildLight({ brand: Brand.Lifx })
-    ]
-    const tplinkLights = [
+    ])
+    const tplinkLights = new Lights([
       buildLight({ brand: Brand.TpLink }),
       buildLight({ brand: Brand.TpLink })
-    ]
-    const lightsFixture = [...lifxLights, ...tplinkLights]
+    ])
+    const lightsFixture = new Lights([...lifxLights.getAll(), ...tplinkLights.getAll()])
     mockRepositories({ lifxLights, tplinkLights })
     let lights = await lightService.getLights()
-    expect(lights).toHaveLength(0)
+    expect(lights.getAll()).toHaveLength(0)
 
     const server = await buildServer()
     await server.close()
@@ -49,7 +49,7 @@ describe('Smarthome API Bootstrap should', () => {
   it('notify if lights are found or not', async () => {
     console.info = jest.fn()
     mockRepositories({
-      lifxLights: [
+      lifxLights: new Lights([
         buildLight({
           brand: Brand.Lifx,
           available: false,
@@ -60,8 +60,8 @@ describe('Smarthome API Bootstrap should', () => {
           available: true,
           name: 'Lifx available'
         })
-      ],
-      tplinkLights: [
+      ]),
+      tplinkLights: new Lights([
         buildLight({
           brand: Brand.TpLink,
           available: false,
@@ -71,7 +71,7 @@ describe('Smarthome API Bootstrap should', () => {
           brand: Brand.TpLink,
           available: true,
           name: 'TP-Link available'
-        })]
+        })])
     })
 
     const server = await buildServer()

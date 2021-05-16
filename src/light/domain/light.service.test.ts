@@ -5,10 +5,11 @@ import { Brand, BrandService } from '../../brand'
 import { LightRepository } from './light.repository'
 import { container } from 'tsyringe'
 import { LightMongoRepository } from '../infrastructure/light.mongo.repository'
+import { Lights } from './lights.model'
 
 type MockRepositoriesParams = Partial<{
-    getById: Light,
-    getAll: Light[],
+  getById: Light,
+  getAll: Lights,
 }>
 
 describe('Light service should', () => {
@@ -24,11 +25,12 @@ describe('Light service should', () => {
     container.registerInstance(BrandService, brandServiceMock)
 
     mockRepositories = ({
-      getById, getAll
+      getById,
+      getAll
     }: MockRepositoriesParams) => {
       lightRepositoryMock.getById = jest.fn(async () => getById || {} as Light)
-      lightRepositoryMock.getAll = jest.fn(async () => getAll || [] as Light[])
-      lightRepositoryMock.update = jest.fn()
+      lightRepositoryMock.getAll = jest.fn(async () => getAll || new Lights())
+      lightRepositoryMock.update = jest.fn(async (light: Light) => light)
     }
   })
   it('get all devices from database', async () => {
@@ -44,8 +46,12 @@ describe('Light service should', () => {
   })
 
   it('toggle TP-Link device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.TpLink, power: true })
-    mockRepositories({ getById: light })
+    const light = buildLight({
+      id: 'irrelevantDevice',
+      brand: Brand.TpLink,
+      power: true
+    })
+    mockRepositories({ getById: new Light(light) })
 
     const updatedLight = await new LightService(
       lightRepositoryMock,
@@ -64,8 +70,12 @@ describe('Light service should', () => {
   })
 
   it('toggle Lifx device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.Lifx, power: true })
-    mockRepositories({ getById: light })
+    const light = buildLight({
+      id: 'irrelevantDevice',
+      brand: Brand.Lifx,
+      power: true
+    })
+    mockRepositories({ getById: new Light(light) })
 
     const updatedLight = await new LightService(
       lightRepositoryMock,
@@ -84,8 +94,14 @@ describe('Light service should', () => {
   })
 
   it('change light state in TP-Link device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.TpLink })
-    const config = { power: false, brightness: 50 }
+    const light = buildLight({
+      id: 'irrelevantDevice',
+      brand: Brand.TpLink
+    })
+    const config = {
+      power: false,
+      brightness: 50
+    }
     mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(
@@ -105,8 +121,14 @@ describe('Light service should', () => {
   })
 
   it('change light state in Lifx device by id', async () => {
-    const light = buildLight({ id: 'irrelevantDevice', brand: Brand.Lifx })
-    const config = { power: false, brightness: 50 }
+    const light = buildLight({
+      id: 'irrelevantDevice',
+      brand: Brand.Lifx
+    })
+    const config = {
+      power: false,
+      brightness: 50
+    }
     mockRepositories({ getById: light })
 
     const updatedLight = await new LightService(

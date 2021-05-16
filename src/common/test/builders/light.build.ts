@@ -3,7 +3,7 @@ import { generateId } from '../../index'
 import { Brand } from '../../../brand'
 
 export function buildLight (light: Partial<Light> = {}): Light {
-  return {
+  return new Light({
     available: light.available ?? true,
     brightness: light.brightness ?? 100,
     colorTemp: light.colorTemp ?? 2700,
@@ -12,5 +12,5 @@ export function buildLight (light: Partial<Light> = {}): Light {
     power: light.power ?? true,
     brand: light.brand ?? Brand.Lifx,
     type: light.type ?? LightType.Bulb
-  }
+  })
 }

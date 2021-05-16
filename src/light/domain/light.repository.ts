@@ -1,8 +1,9 @@
 import { Light } from './light.model'
+import { Lights } from './lights.model'
 
 export interface LightRepository {
-    getAll (): Promise<Light[]>
-    getAllById (ids: string[]): Promise<Light[]>
+    getAll (): Promise<Lights>
+    getAllById (ids: string[]): Promise<Lights>
     getById (id: string): Promise<Light>
-    update (device: Light): Promise<Light>
+    update (light: Light): Promise<Light>
 }

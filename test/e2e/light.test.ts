@@ -5,6 +5,7 @@ import { container } from 'tsyringe'
 import { App } from '../../src/app'
 import { buildLight } from '../../src/common/test'
 import { Brand, BrandLifxRepository } from '../../src/brand'
+import { expectLightsToBeEqual } from '../helpers'
 
 const app = container.resolve(App)
 app.start = async (server) => { lightRoutes(server) }
@@ -69,7 +70,7 @@ describe('light endpoints', () => {
 
         const updatedLight = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedLight).toStrictEqual({ ...light, ...update })
+        expectLightsToBeEqual(updatedLight, light.updateState(update))
       })
       it('return 404 if the light is not in database', async () => {
         const server = await buildServer()
@@ -107,7 +108,7 @@ describe('light endpoints', () => {
 
         const updatedLight = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedLight).toStrictEqual({ ...light, power: !light.power })
+        expectLightsToBeEqual(updatedLight, light.togglePower())
       })
       it('return 404 if the light is not in database', async () => {
         const server = await buildServer()

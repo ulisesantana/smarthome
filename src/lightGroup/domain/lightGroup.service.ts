@@ -1,5 +1,5 @@
 import { LightGroupRepository } from './lightGroup.repository'
-import { Light, LightService } from '../../light'
+import { Light, Lights, LightService } from '../../light'
 import {
   LightGroup,
   LightGroupEntity
@@ -54,23 +54,19 @@ export class LightGroupService<Model extends LightGroup, Entity extends LightGro
       for await (const light of this.toggleLights(model.lights)) {
         updatedLights.push(light)
       }
-      model.lights = updatedLights
+      model.lights = new Lights(updatedLights)
     }
     return model
   }
 
-  private async * toggleLights (lights: Light[]): AsyncGenerator<Light> {
-    const newPowerState = !LightGroupService.anyLightIsPoweredUp(lights)
-    for (const light of lights) {
+  private async * toggleLights (lights: Lights): AsyncGenerator<Light> {
+    const newPowerState = !lights.anyLightIsPoweredUp()
+    for (const light of lights.getAll()) {
       if (light.power !== newPowerState) {
         await this.lightService.toggleLightById(light.id)
-        light.power = !light.power
+        light.togglePower()
       }
       yield light
     }
-  }
-
-  protected static anyLightIsPoweredUp (lights: Light[]): boolean {
-    return lights.some(({ power }) => power)
   }
 }

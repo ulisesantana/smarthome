@@ -1,14 +1,14 @@
 import { SceneService } from './scene.service'
-import { buildSceneEntity, buildScene, buildLight } from '../../common/test'
+import { buildLight, buildScene, buildSceneEntity } from '../../common/test'
 import { SceneRepository } from '../infrastructure/scene.repository'
-import { LightService } from '../../light'
+import { Light, Lights, LightService } from '../../light'
 import { container } from 'tsyringe'
-import { Scene, SceneEntity, SceneRequest } from './scene.model'
+import { Scene, SceneEntity } from './scene.model'
 
 type MockRepositoriesParams = Partial<{
-    getById: Scene,
-    getAll: Scene[],
-    update: SceneEntity
+  getById: Scene,
+  getAll: Scene[],
+  update: SceneEntity
 }>
 
 describe('Scene service should', () => {
@@ -25,7 +25,9 @@ describe('Scene service should', () => {
     sceneRepository.remove = jest.fn()
 
     mockRepository = ({
-      getById, getAll, update
+      getById,
+      getAll,
+      update
     }: MockRepositoriesParams) => {
       sceneRepository.getById = jest.fn(async () => getById || {} as Scene)
       sceneRepository.getAll = jest.fn(async () => getAll || [] as Scene[])
@@ -36,9 +38,15 @@ describe('Scene service should', () => {
     it('with given values', async () => {
       const mockId = 'noId'
       const light = buildLight()
-      const mockScene = buildSceneEntity({ id: mockId, lights: [light.id] })
-      const expectedScene = buildScene({ ...mockScene, lights: [light] })
-      lightService.getLightsById = jest.fn(async () => [expectedScene.lights[0]])
+      const mockScene = buildSceneEntity({
+        id: mockId,
+        lights: [light.id]
+      })
+      const expectedScene = buildScene({
+        ...mockScene,
+        lights: new Lights([light])
+      })
+      lightService.getLightsById = jest.fn(async () => new Lights([expectedScene.lights.getAll()[0]]))
 
       const createdScene = await new SceneService(lightService, sceneRepository).create(mockScene)
 
@@ -52,10 +60,10 @@ describe('Scene service should', () => {
     })
 
     it('filled with default values if no values are given', async () => {
-      lightService.getLightsById = jest.fn(async () => [])
-      const defaultSceneValues: SceneRequest = {
+      lightService.getLightsById = jest.fn(async () => new Lights())
+      const defaultSceneValues: Partial<Scene> = {
         color: 'orangered',
-        lights: [],
+        lights: new Lights(),
         icon: 'wb_sunny',
         name: 'NO NAME',
         brightness: 50,
@@ -93,13 +101,23 @@ describe('Scene service should', () => {
   })
 
   it('update a scene and return it', async () => {
-    const mockedScene = buildScene({ brightness: 100, colorTemp: 5000 })
-    const updates = { color: 'red', brightness: 10, colorTemp: 2700 }
+    const mockedScene = buildScene({
+      brightness: 100,
+      colorTemp: 5000
+    })
+    const updates = {
+      color: 'red',
+      brightness: 10,
+      colorTemp: 2700
+    }
     const updatedScene = { ...mockedScene, ...updates }
     lightService.getLightsById = async () => mockedScene.lights
     mockRepository({
       getById: mockedScene,
-      update: { ...updatedScene, lights: updatedScene.lights.map(({ id }) => id) }
+      update: {
+        ...updatedScene,
+        lights: updatedScene.lights.getIds()
+      }
     })
 
     const scene = await new SceneService(lightService, sceneRepository).update(mockedScene.id, updates)
@@ -121,20 +139,19 @@ describe('Scene service should', () => {
   describe('toggle scene devices and apply scene config by scene id', () => {
     it('if any device is powered on then all will be powered on', async () => {
       const mockedScene = buildScene({
-        lights: [
+        lights: new Lights([
           buildLight({ power: true }),
           buildLight({ power: false }),
           buildLight({ power: false })
-        ]
+        ])
       })
       const toggledScene: Scene = {
         ...mockedScene,
-        lights: mockedScene.lights.map(light => ({
-          ...light,
+        lights: new Lights(mockedScene.lights.getAll().map(light => new Light(light).updateState({
           power: false,
           brightness: mockedScene.brightness,
           colorTemp: mockedScene.colorTemp
-        }))
+        })))
       }
       mockRepository({ getById: { ...mockedScene } })
 
@@ -145,20 +162,19 @@ describe('Scene service should', () => {
     })
     it('if all devices are powered off then all will be powered on', async () => {
       const mockedScene = buildScene({
-        lights: [
+        lights: new Lights([
           buildLight({ power: false }),
           buildLight({ power: false }),
           buildLight({ power: false })
-        ]
+        ])
       })
       const toggledScene: Scene = {
         ...mockedScene,
-        lights: mockedScene.lights.map(light => ({
-          ...light,
+        lights: new Lights(mockedScene.lights.getAll().map(light => new Light(light).updateState({
           power: true,
           brightness: mockedScene.brightness,
           colorTemp: mockedScene.colorTemp
-        }))
+        })))
       }
       mockRepository({ getById: { ...mockedScene } })
 
@@ -169,20 +185,19 @@ describe('Scene service should', () => {
     })
     it('if all devices are powered on then all will be powered off', async () => {
       const mockedScene = buildScene({
-        lights: [
+        lights: new Lights([
           buildLight({ power: true }),
           buildLight({ power: true }),
           buildLight({ power: true })
-        ]
+        ])
       })
       const toggledScene: Scene = {
         ...mockedScene,
-        lights: mockedScene.lights.map(light => ({
-          ...light,
+        lights: new Lights(mockedScene.lights.getAll().map(light => new Light(light).updateState({
           power: false,
           brightness: mockedScene.brightness,
           colorTemp: mockedScene.colorTemp
-        }))
+        })))
       }
       mockRepository({ getById: { ...mockedScene } })
 

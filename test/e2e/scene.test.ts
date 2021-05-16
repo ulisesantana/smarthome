@@ -4,11 +4,14 @@ import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
 import { App } from '../../src/app'
 import { buildLight, buildScene } from '../../src/common/test'
-import { Light, LightMongoRepository } from '../../src/light'
+import { Light, LightMongoRepository, Lights } from '../../src/light'
 import { BrandLifxRepository } from '../../src/brand'
+import { expectLightsArrayToBeEqual, expectScenesToBeEqual, generateLights, setLightCollection } from '../helpers'
 
 const app = container.resolve(App)
-app.start = async (server) => { sceneRoutes(server) }
+app.start = async (server) => {
+  sceneRoutes(server)
+}
 container.registerInstance(App, app)
 
 describe('scene endpoints', () => {
@@ -58,7 +61,10 @@ describe('scene endpoints', () => {
         const response = await server.inject({
           url: '/scene',
           method: 'POST',
-          payload: { ...scene, lights: scene.lights.map(({ id }) => id) }
+          payload: {
+            ...scene,
+            lights: scene.lights.getIds()
+          }
         })
         await server.close()
 
@@ -67,7 +73,7 @@ describe('scene endpoints', () => {
         expect(createdScene.name).toBe(scene.name)
         expect(createdScene.color).toBe(scene.color)
         expect(createdScene.icon).toBe(scene.icon)
-        expect(createdScene.lights).toStrictEqual(scene.lights)
+        expectLightsArrayToBeEqual(createdScene.lights, scene.lights.getAll())
       })
     })
   })
@@ -88,7 +94,7 @@ describe('scene endpoints', () => {
 
         const retrievedScene = response.json()
         expect(response.statusCode).toBe(200)
-        expect(retrievedScene).toStrictEqual(scene)
+        expectScenesToBeEqual(retrievedScene, scene)
       })
       it('retrieve 404 if there is no scene with the given id in database', async () => {
         const server = await buildServer()
@@ -109,7 +115,10 @@ describe('scene endpoints', () => {
         const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
         container.registerInstance(BrandLifxRepository, lifxRepository)
-        const scene = buildScene({ name: 'Bedscene', color: 'red' })
+        const scene = buildScene({
+          name: 'Bedscene',
+          color: 'red'
+        })
         await setSceneCollection([scene])
         const update = {
           name: 'Movie',
@@ -128,18 +137,18 @@ describe('scene endpoints', () => {
 
         const updatedScene = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedScene).toStrictEqual({ ...scene, ...update })
+        expectScenesToBeEqual(updatedScene, { ...scene, ...update })
       })
       it('update the scene lights', async () => {
         const server = await buildServer()
         const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
         container.registerInstance(BrandLifxRepository, lifxRepository)
-        const scene = buildScene({ lights: [buildLight(), buildLight()] })
-        const newLights = [...scene.lights, buildLight()]
+        const scene = buildScene({ lights: new Lights([buildLight(), buildLight()]) })
+        const newLights = new Lights([...scene.lights.getAll(), buildLight()])
         await setSceneCollection([scene])
         await setLightCollection(newLights)
-        const update = { lights: newLights.map(({ id }) => id) }
+        const update = { lights: newLights.getIds() }
 
         const response = await server.inject({
           url: `scene/${scene.id}`,
@@ -150,7 +159,10 @@ describe('scene endpoints', () => {
 
         const updatedScene = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedScene).toStrictEqual({ ...scene, lights: newLights })
+        expectScenesToBeEqual(updatedScene, {
+          ...scene,
+          lights: newLights
+        })
       })
       it('return 404 if the scene is not in database', async () => {
         const server = await buildServer()
@@ -159,7 +171,11 @@ describe('scene endpoints', () => {
         container.registerInstance(BrandLifxRepository, lifxRepository)
         const scene = buildScene()
         await setSceneCollection([])
-        const update = { name: 'Kitchen', color: 'black', icon: 'kitchen' }
+        const update = {
+          name: 'Kitchen',
+          color: 'black',
+          icon: 'kitchen'
+        }
 
         const response = await server.inject({
           url: `scene/${scene.id}`,
@@ -211,7 +227,7 @@ describe('scene endpoints', () => {
         const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
         container.registerInstance(BrandLifxRepository, lifxRepository)
-        const scene = buildScene({ lights: [buildLight()] })
+        const scene = buildScene({ lights: new Lights([buildLight()]) })
         await setSceneCollection([scene])
 
         const response = await server.inject({
@@ -222,14 +238,14 @@ describe('scene endpoints', () => {
 
         const updatedScene = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedScene).toStrictEqual({
+        expectScenesToBeEqual(updatedScene, {
           ...scene,
-          lights: scene.lights.map(light => ({
+          lights: new Lights(scene.lights.getAll().map(light => new Light(light).updateState({
             ...light,
             brightness: scene.brightness,
             colorTemp: scene.colorTemp,
             power: !light.power
-          }))
+          })))
         })
       })
       it('return 404 if the scene is not in database', async () => {
@@ -256,32 +272,20 @@ async function setSceneCollection (scenes: Scene[]): Promise<void> {
   await container.resolve(MongoDB).useCollection(SceneRepository.collection).removeCollection()
   await container.resolve(MongoDB).useCollection(LightMongoRepository.collection).removeCollection()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
-  for await (const _scene of generateScenes(scenes)) {}
+  for await (const _scene of generateScenes(scenes)) {
+  }
 }
 
 async function * generateScenes (scenes: Scene[]) {
   const sceneRepository = container.resolve(SceneRepository)
   for (const scene of scenes) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
-    for await (const _light of generateLights(scene.lights)) {}
+    for await (const _light of generateLights(scene.lights)) {
+    }
     await sceneRepository.update({
       ...scene,
-      lights: scene.lights.map(({ id }) => id)
+      lights: scene.lights.getIds()
     })
     yield scene
-  }
-}
-
-async function setLightCollection (lights: Light[]): Promise<void> {
-  await container.resolve(MongoDB).useCollection(LightMongoRepository.collection).removeCollection()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
-  for await (const _light of generateLights(lights)) {}
-}
-
-async function * generateLights (lights: Light[]) {
-  const lightRepository = container.resolve(LightMongoRepository)
-  for (const light of lights) {
-    await lightRepository.update(light)
-    yield light
   }
 }

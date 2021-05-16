@@ -1,6 +1,6 @@
-import { Light } from '../../light'
+import { Light, Lights } from '../../light'
 
 export interface BrandRepository {
-  getAllLights(): Promise<Light[]>
+  getAllLights(): Promise<Lights>
   setState(light: Light): Promise<void>
 }

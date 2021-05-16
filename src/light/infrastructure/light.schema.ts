@@ -1,5 +1,4 @@
 import S from 'fluent-json-schema'
-import { LightService } from '..'
 import {
   generateInternalServerErrorSchema,
   generateNotFoundErrorSchema
@@ -47,8 +46,8 @@ export const updateLightStatusById = {
   params: S.object().prop('id', S.string().required()),
   body: S.object()
     .prop('power', S.boolean())
-    .prop('colorTemp', S.number().minimum(LightService.warmLight).maximum(LightService.whiteLight))
-    .prop('brightness', S.number().minimum(0).maximum(100)),
+    .prop('colorTemp', S.number())
+    .prop('brightness', S.number()),
   response: {
     200: S.object()
       .description('Successful response')

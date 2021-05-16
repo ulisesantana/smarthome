@@ -4,8 +4,9 @@ import { MongoDB } from '../../src/common'
 import { container } from 'tsyringe'
 import { App } from '../../src/app'
 import { buildLight, buildRoom } from '../../src/common/test'
-import { Light, LightMongoRepository } from '../../src/light'
+import { Light, LightMongoRepository, Lights } from '../../src/light'
 import { BrandLifxRepository } from '../../src/brand'
+import { expectLightsArrayToBeEqual, expectRoomsToBeEqual, generateLights, setLightCollection } from '../helpers'
 
 const app = container.resolve(App)
 app.start = async (server) => { roomRoutes(server) }
@@ -58,7 +59,7 @@ describe('room endpoints', () => {
         const response = await server.inject({
           url: '/room',
           method: 'POST',
-          payload: { ...room, lights: room.lights.map(({ id }) => id) }
+          payload: { ...room, lights: room.lights.getIds() }
         })
         await server.close()
 
@@ -67,7 +68,7 @@ describe('room endpoints', () => {
         expect(createdRoom.name).toBe(room.name)
         expect(createdRoom.color).toBe(room.color)
         expect(createdRoom.icon).toBe(room.icon)
-        expect(createdRoom.lights).toStrictEqual(room.lights)
+        expectLightsArrayToBeEqual(createdRoom.lights, room.lights.getAll())
       })
     })
   })
@@ -88,7 +89,7 @@ describe('room endpoints', () => {
 
         const retrievedRoom = response.json()
         expect(response.statusCode).toBe(200)
-        expect(retrievedRoom).toStrictEqual(room)
+        expectRoomsToBeEqual(retrievedRoom, room)
       })
       it('retrieve 404 if there is no room with the given id in database', async () => {
         const server = await buildServer()
@@ -122,18 +123,18 @@ describe('room endpoints', () => {
 
         const updatedRoom = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedRoom).toStrictEqual({ ...room, ...update })
+        expectRoomsToBeEqual(updatedRoom, { ...room, ...update })
       })
       it('update the room lights', async () => {
         const server = await buildServer()
         const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
         container.registerInstance(BrandLifxRepository, lifxRepository)
-        const room = buildRoom({ lights: [buildLight(), buildLight()] })
-        const newLights = [...room.lights, buildLight()]
+        const room = buildRoom({ lights: new Lights([buildLight(), buildLight()]) })
+        const newLights = new Lights([...room.lights.getAll(), buildLight()])
         await setRoomCollection([room])
         await setLightCollection(newLights)
-        const update = { lights: newLights.map(({ id }) => id) }
+        const update = { lights: newLights.getIds() }
 
         const response = await server.inject({
           url: `room/${room.id}`,
@@ -144,7 +145,7 @@ describe('room endpoints', () => {
 
         const updatedRoom = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedRoom).toStrictEqual({ ...room, lights: newLights })
+        expectRoomsToBeEqual(updatedRoom, { ...room, lights: newLights })
       })
       it('return 404 if the room is not in database', async () => {
         const server = await buildServer()
@@ -205,7 +206,7 @@ describe('room endpoints', () => {
         const lifxRepository = container.resolve(BrandLifxRepository)
         lifxRepository.setState = jest.fn()
         container.registerInstance(BrandLifxRepository, lifxRepository)
-        const room = buildRoom({ lights: [buildLight()] })
+        const room = buildRoom({ lights: new Lights([buildLight()]) })
         await setRoomCollection([room])
 
         const response = await server.inject({
@@ -216,9 +217,9 @@ describe('room endpoints', () => {
 
         const updatedRoom = response.json()
         expect(response.statusCode).toBe(200)
-        expect(updatedRoom).toStrictEqual({
+        expectRoomsToBeEqual(updatedRoom, {
           ...room,
-          lights: [{ ...room.lights[0], power: !room.lights[0].power }]
+          lights: new Lights(room.lights.getAll().map(light => new Light(light).togglePower()))
         })
       })
       it('return 404 if the room is not in database', async () => {
@@ -255,22 +256,8 @@ async function * generateRooms (rooms: Room[]) {
     for await (const _light of generateLights(room.lights)) {}
     await roomRepository.update({
       ...room,
-      lights: room.lights.map(({ id }) => id)
+      lights: room.lights.getIds()
     })
     yield room
-  }
-}
-
-async function setLightCollection (lights: Light[]): Promise<void> {
-  await container.resolve(MongoDB).useCollection(LightMongoRepository.collection).removeCollection()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-empty
-  for await (const _light of generateLights(lights)) {}
-}
-
-async function * generateLights (lights: Light[]) {
-  const lightRepository = container.resolve(LightMongoRepository)
-  for (const light of lights) {
-    await lightRepository.update(light)
-    yield light
   }
 }
