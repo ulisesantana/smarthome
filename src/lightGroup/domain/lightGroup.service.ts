@@ -1,9 +1,6 @@
 import { LightGroupRepository } from './lightGroup.repository'
-import { Light, Lights, LightService } from '../../light'
-import {
-  LightGroup,
-  LightGroupEntity
-} from './lightGroup.model'
+import { Lights, LightService } from '../../light'
+import { LightGroup, LightGroupEntity } from './lightGroup.model'
 
 export class LightGroupService<Model extends LightGroup, Entity extends LightGroupEntity> {
   constructor (
@@ -51,22 +48,11 @@ export class LightGroupService<Model extends LightGroup, Entity extends LightGro
     const model = await this.getById(id)
     const updatedLights = []
     if (model?.id !== undefined) {
-      for await (const light of this.toggleLights(model.lights)) {
+      for await (const light of this.lightService.toggleLights(model.lights)) {
         updatedLights.push(light)
       }
       model.lights = new Lights(updatedLights)
     }
     return model
-  }
-
-  private async * toggleLights (lights: Lights): AsyncGenerator<Light> {
-    const newPowerState = !lights.anyLightIsPoweredUp()
-    for (const light of lights.getAll()) {
-      if (light.power !== newPowerState) {
-        await this.lightService.toggleLightById(light.id)
-        light.togglePower()
-      }
-      yield light
-    }
   }
 }

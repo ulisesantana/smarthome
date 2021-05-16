@@ -20,6 +20,10 @@ export class LightService {
     return this.repository.getAllById(ids)
   }
 
+  async saveLight (light: Light): Promise<Light> {
+    return await this.repository.update(light)
+  }
+
   async setLightStateById (id: string, config: Partial<Light>): Promise<Light> {
     const light = await this.repository.getById(id)
     light.updateState(config)
@@ -32,8 +36,15 @@ export class LightService {
     return this.setLightState(light)
   }
 
-  async saveLight (light: Light): Promise<Light> {
-    return await this.repository.update(light)
+  async * toggleLights (lights: Lights): AsyncGenerator<Light> {
+    const newPowerState = !lights.anyLightIsPoweredUp()
+    for (const light of lights.getAll()) {
+      if (light.power !== newPowerState) {
+        await this.toggleLightById(light.id)
+        light.togglePower()
+      }
+      yield light
+    }
   }
 
   private async setLightState (light: Light): Promise<Light> {
