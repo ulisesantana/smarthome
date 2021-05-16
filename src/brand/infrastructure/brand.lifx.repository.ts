@@ -45,12 +45,11 @@ export class BrandLifxRepository implements BrandRepository {
       }
     })
     const lights = response.toJSON().body
-    const result = new Lights(lights.map(BrandLifxRepository.mapToDomain))
-    return result
+    return new Lights(lights.map(BrandLifxRepository.mapToDomain))
   }
 
-  async setState (device: Light): Promise<void> {
-    const options = BrandLifxRepository.mapToProvider(device)
+  async setState (light: Light): Promise<void> {
+    const options = BrandLifxRepository.mapToProvider(light)
     const body: StateOptions = {
       fast: true
     }
@@ -73,34 +72,34 @@ export class BrandLifxRepository implements BrandRepository {
       body.fast = options.fast
     }
 
-    const response = await http.put(`${this.url}/id:${device.id}/state`, {
+    const response = await http.put(`${this.url}/id:${light.id}/state`, {
       auth: {
         bearer: this.token
       },
       body
     })
 
-    console.debug(`Lifx set state for ${device.name}`, response.toJSON().body)
+    console.debug(`Lifx set state for ${light.name}`, response.toJSON().body)
     console.debug(body)
-    console.debug(`Response ${device.name}`, response.statusMessage)
+    console.debug(`Response ${light.name}`, response.statusMessage)
   }
 
-  private static mapToProvider (device: Light): StateOptions {
+  private static mapToProvider (light: Light): StateOptions {
     return {
-      power: device.power ? 'on' : 'off',
-      color: `kelvin:${device.colorTemp}`,
-      brightness: device.brightness / 100
+      power: light.power ? 'on' : 'off',
+      color: `kelvin:${light.colorTemp}`,
+      brightness: light.brightness / 100
     }
   }
 
-  private static mapToDomain (device: LifxLight): Light {
+  private static mapToDomain (light: LifxLight): Light {
     return new Light({
-      id: device.id,
-      name: device.label.trim(),
+      id: light.id,
+      name: light.label.trim(),
       type: LightType.Bulb,
-      brightness: device.brightness * 100,
-      colorTemp: device.color.kelvin,
-      power: device.power === 'on',
+      brightness: light.brightness * 100,
+      colorTemp: light.color.kelvin,
+      power: light.power === 'on',
       available: true,
       brand: Brand.Lifx
     })
