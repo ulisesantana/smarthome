@@ -13,5 +13,12 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.+(ts|js)', '**/?(*.)+(spec|test).+(ts|js)'],
   transform: {
     '^.+\\.(ts)?$': 'ts-jest'
-  }
+  },
+  coveragePathIgnorePatterns: [
+    'node_modules',
+    '<rootDir>/src/common/test',
+    '<rootDir>/src/config',
+    '<rootDir>/src/server.ts',
+    '<rootDir>/test/helpers'
+  ]
 }
