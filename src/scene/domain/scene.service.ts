@@ -49,7 +49,7 @@ export class SceneService extends LightGroupService<Scene, SceneEntity> {
     }
     for (const light of scene.lights.getAll()) {
       await this.lightService.setLightStateById(light.id, config)
-      yield light.updateState(config)
+      yield light.updateState(config as Partial<Light>)
     }
   }
 }
