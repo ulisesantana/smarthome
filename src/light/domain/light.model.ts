@@ -22,6 +22,11 @@ export class Light {
   readonly #type: LightType
   #available: boolean
   #brightness: number
+  /**
+   * Color temperature in Kelvin degrees.
+   * Minimum:
+   * @private
+   */
   #colorTemp: number
   #name: string
   #power: boolean
@@ -42,8 +47,8 @@ export class Light {
     this.#id = params.id
     this.#name = params.name
     this.#type = params.type || LightType.Bulb
-    this.#brightness = params.brightness || 100
-    this.#colorTemp = params.colorTemp || Light.warmLight
+    this.#brightness = Light.validateWithMinAndMax(params.brightness || Light.maxBrightness, Light.minBrightness, Light.maxBrightness)
+    this.#colorTemp = Light.validateWithMinAndMax(params.colorTemp || Light.warmLight, Light.warmLight, Light.whiteLight)
     this.#power = params.power ?? true
     this.#available = params.available ?? true
     this.#brand = params.brand
@@ -70,30 +75,20 @@ export class Light {
 
   updateState (state: Partial<Light>): Light {
     if (state.name !== undefined) this.#name = state.name
-    if (state.brightness !== undefined) this.setBrightness(state.brightness)
-    if (state.colorTemp !== undefined) this.setColorTemp(state.colorTemp)
+    if (state.brightness !== undefined) this.#brightness = Light.validateWithMinAndMax(state.brightness, Light.minBrightness, Light.maxBrightness)
+    if (state.colorTemp !== undefined) this.#colorTemp = Light.validateWithMinAndMax(state.colorTemp, Light.warmLight, Light.whiteLight)
     if (state.power !== undefined) this.#power = state.power
     if (state.available !== undefined) this.#available = state.available
     return this
   }
 
-  private setColorTemp (colorTemp: number): void {
-    if (colorTemp > Light.whiteLight) {
-      this.#colorTemp = Light.whiteLight
-    } else if (colorTemp < Light.warmLight) {
-      this.#colorTemp = Light.warmLight
+  private static validateWithMinAndMax (value: number, min: number, max: number): number {
+    if (value > max) {
+      return max
+    } else if (value < min) {
+      return min
     } else {
-      this.#colorTemp = colorTemp
-    }
-  }
-
-  private setBrightness (brightness: number): void {
-    if (brightness > Light.maxBrightness) {
-      this.#brightness = Light.maxBrightness
-    } else if (brightness < Light.minBrightness) {
-      this.#brightness = Light.minBrightness
-    } else {
-      this.#brightness = brightness
+      return value
     }
   }
 }
