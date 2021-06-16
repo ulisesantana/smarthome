@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { Light, Lights, LightType } from '../../light'
-import { Environment, http } from '../../common'
+import { Environment, HttpRequest } from '../../common'
 import { Brand } from '../domain/brand.service'
 import { inject, injectable } from 'tsyringe'
 import { BrandRepository } from '../domain/brand.repository'
@@ -28,7 +28,10 @@ export class BrandLifxRepository implements BrandRepository {
   private readonly token: string
 
   // TODO: Inject http for mocking and testing
-  constructor (@inject(Environment) private readonly environment: Environment) {
+  constructor (
+    @inject(HttpRequest) private readonly http: HttpRequest,
+    @inject(Environment) private readonly environment: Environment
+  ) {
     this.token = environment.getVariables().lifxToken
     if (this.environment.isProduction()) {
       if (!this.token) {
@@ -39,7 +42,7 @@ export class BrandLifxRepository implements BrandRepository {
   }
 
   async getAllLights (): Promise<Lights> {
-    const response = await http.get(`${this.url}/all`, {
+    const response = await this.http.get(`${this.url}/all`, {
       auth: {
         bearer: this.token
       }
@@ -72,7 +75,7 @@ export class BrandLifxRepository implements BrandRepository {
       body.fast = options.fast
     }
 
-    const response = await http.put(`${this.url}/id:${light.id}/state`, {
+    const response = await this.http.put(`${this.url}/id:${light.id}/state`, {
       auth: {
         bearer: this.token
       },

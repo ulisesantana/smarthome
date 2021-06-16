@@ -1,4 +1,4 @@
-import { http, generateId, Environment, MongoDB, MongoAPI } from '../../common'
+import { Environment, generateId, HttpRequest, MongoAPI, MongoDB } from '../../common'
 import { Light, Lights, LightType } from '../../light'
 import { Brand } from '../domain/brand.service'
 import { inject, injectable } from 'tsyringe'
@@ -42,6 +42,7 @@ export class BrandTplinkRepository implements BrandRepository {
 
     // TODO: Inject http for mocking and testing
     constructor (
+        @inject(HttpRequest) private readonly http: HttpRequest,
         @inject(Environment) private readonly environment: Environment,
         @inject(MongoDB) instance: MongoDB
     ) {
@@ -79,7 +80,7 @@ export class BrandTplinkRepository implements BrandRepository {
         body: { method: 'getDeviceList' }
       }
 
-      const response = await http.post(url, request)
+      const response = await this.http.post(url, request)
       const { deviceList } = response.toJSON().body.result
       return this.processDeviceList(deviceList)
     }
@@ -128,7 +129,7 @@ export class BrandTplinkRepository implements BrandRepository {
         throw new Error(`TPLink device with id ${id} doesn't exist.`)
       } else {
         const deviceInfo = await this.passthroughRequest(device, { system: { get_sysinfo: {} } })
-        return BrandTplinkRepository.mapToDevice(device, {
+        return BrandTplinkRepository.mapToDomain(device, {
           power: deviceInfo?.system?.get_sysinfo?.relay_state ?? deviceInfo?.system?.get_sysinfo?.light_state?.on_off,
           brightness: deviceInfo?.system?.get_sysinfo?.light_state?.dft_on_state?.brightness ?? 0,
           colorTemp: deviceInfo?.system?.get_sysinfo?.light_state?.dft_on_state?.color_temp ?? 0
@@ -182,7 +183,7 @@ export class BrandTplinkRepository implements BrandRepository {
         headers: BrandTplinkRepository.headers
       }
 
-      const response = await http.post(url, request)
+      const response = await this.http.post(url, request)
       this.token = response.toJSON().body.result.token
       this.termID = termID
       this.expirationTime = Date.now() + this.oneHourInMs
@@ -213,14 +214,14 @@ export class BrandTplinkRepository implements BrandRepository {
         }
       }
 
-      const response = await http.post(url, request)
+      const response = await this.http.post(url, request)
       const data = response.toJSON().body
       return data?.result?.responseData !== undefined
         ? JSON.parse(data.result.responseData)
         : data
     }
 
-    private static mapToDevice (device: TpLinkDevice, deviceState: LightState): Light {
+    private static mapToDomain (device: TpLinkDevice, deviceState: LightState): Light {
       if (BrandTplinkRepository.isABulb(device)) {
         return new Light({
           id: device.deviceId,
